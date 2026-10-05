@@ -15,7 +15,7 @@ export default async function BuscaPage({
         .select("id, slug, nome, imagem, preco_atual, preco_antigo")
         .eq("status", "publicado")
         .ilike("nome", `%${termoEscapado}%`)
-        .order("created_at", { ascending: false })
+        .order("criado_em", { ascending: false })
     : { data: [] };
 
   return (

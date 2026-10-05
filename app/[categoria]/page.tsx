@@ -14,10 +14,10 @@ export default async function CategoriaPage({
 
   const { data: produtos } = await supabase
     .from("produtos")
-    .select("id, slug, nome, imagem, preco_atual, preco_antigo, categorias!inner(slug)")
-    .eq("categorias.slug", categoria.slug)
+    .select("id, slug, nome, imagem, preco_atual, preco_antigo")
+    .eq("categoria", categoria.slug)
     .eq("status", "publicado")
-    .order("created_at", { ascending: false });
+    .order("criado_em", { ascending: false });
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">

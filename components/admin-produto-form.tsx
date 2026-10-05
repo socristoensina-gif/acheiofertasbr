@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { salvarProduto } from "@/app/admin/actions";
-import { CATEGORIAS } from "@/lib/categorias";
 
-type Categoria = { id: string | number; slug: string };
+type Categoria = { slug: string; nome: string };
 type Produto = {
   id: string;
   nome: string;
-  categoria_id: string | number;
+  categoria?: string | null;
   link_afiliado: string;
   imagem: string | null;
   preco_atual: number | string;
@@ -39,7 +38,13 @@ export function AdminProdutoForm({
       </div>
       {erro && (
         <p className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
-          Não foi possível salvar. Confira os dados e se o marketplace está cadastrado.
+          {erro === "salvar"
+            ? "O produto não foi salvo no banco. Revise os dados e tente novamente."
+            : erro === "categoria"
+              ? "Selecione uma categoria válida e cadastrada."
+              : erro === "marketplace"
+                ? "O marketplace do link não está cadastrado."
+                : "Confira os campos informados e tente novamente."}
         </p>
       )}
       <form action={salvarProduto} className="grid gap-4 rounded-lg border border-stone-200 bg-white p-4 sm:grid-cols-2 sm:p-6">
@@ -50,14 +55,11 @@ export function AdminProdutoForm({
         </label>
         <label className="admin-field">
           Categoria
-          <select name="categoria_id" defaultValue={produto?.categoria_id ?? ""} required>
+          <select name="categoria" defaultValue={produto?.categoria ?? ""} required>
             <option value="" disabled>Selecione</option>
-            {CATEGORIAS.flatMap((categoriaCanonica) => {
-              const categoria = categorias.find((item) => item.slug === categoriaCanonica.slug);
-              return categoria ? (
-                <option key={categoriaCanonica.slug} value={categoria.id}>{categoriaCanonica.nome}</option>
-              ) : [];
-            })}
+            {categorias.map((categoria) => (
+              <option key={categoria.slug} value={categoria.slug}>{categoria.nome}</option>
+            ))}
           </select>
         </label>
         <label className="admin-field">

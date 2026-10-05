@@ -19,12 +19,17 @@ export async function GET(
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  await db.from("cliques").insert({
-    produto_id: p.id,
-    marketplace: p.marketplace,
-    origem: req.nextUrl.searchParams.get("src") ?? "direto",
-    user_agent: req.headers.get("user-agent")?.slice(0, 300) ?? null,
-  });
+  try {
+    const { error } = await db.from("cliques").insert({
+      produto_id: p.id,
+      marketplace: p.marketplace,
+      origem: req.nextUrl.searchParams.get("src") ?? "direto",
+      user_agent: req.headers.get("user-agent")?.slice(0, 300) ?? null,
+    });
+    if (error) console.error("Falha ao registrar clique do produto", p.id, error);
+  } catch (error) {
+    console.error("Falha ao registrar clique do produto", p.id, error);
+  }
 
   return NextResponse.redirect(p.link_afiliado, 302);
 }

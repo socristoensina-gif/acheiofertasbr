@@ -11,7 +11,7 @@ type Produto = {
   imagem: string | null;
   preco_atual: number | string | null;
   preco_antigo: number | string | null;
-  marketplaces?: { nome?: string } | { nome?: string }[] | null;
+  marketplace?: string | null;
 };
 
 export function FavoriteList({ produtos }: { produtos: Produto[] }) {

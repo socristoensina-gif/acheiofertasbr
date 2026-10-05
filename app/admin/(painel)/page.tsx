@@ -1,16 +1,32 @@
 import Link from "next/link";
 import { alterarStatusProduto, excluirProduto } from "@/app/admin/actions";
-import { CATEGORIAS, SLUGS_CATEGORIAS } from "@/lib/categorias";
+import { SLUGS_CATEGORIAS } from "@/lib/categorias";
 import { supabaseAdmin } from "@/utils/supabase";
 
-export default async function AdminProdutosPage() {
+export default async function AdminProdutosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ erro?: string; sucesso?: string }>;
+}) {
   const db = supabaseAdmin();
-  const [{ data: produtos }, { data: categorias }] = await Promise.all([
-    db.from("produtos").select("id, nome, slug, status, categoria_id, created_at").order("created_at", { ascending: false }),
-    db.from("categorias").select("id, slug").in("slug", SLUGS_CATEGORIAS),
+  const [{ data: produtos }, { data: categorias }, { erro, sucesso }] = await Promise.all([
+    db.from("produtos").select("id, nome, slug, status, categoria, criado_em").order("criado_em", { ascending: false }),
+    db.from("categorias").select("slug, nome").in("slug", SLUGS_CATEGORIAS),
+    searchParams,
   ]);
-  const nomesPorSlug = new Map(CATEGORIAS.map((item) => [item.slug, item.nome]));
-  const nomesCategoria = new Map((categorias ?? []).map((item) => [String(item.id), nomesPorSlug.get(item.slug)]));
+  const nomesCategoria = new Map((categorias ?? []).map((item) => [item.slug, item.nome]));
+  const mensagemErro = erro === "status"
+    ? "Não foi possível atualizar o status do produto."
+    : erro === "excluir"
+      ? "Não foi possível excluir o produto."
+      : null;
+  const mensagemSucesso = sucesso === "status"
+    ? "Status do produto atualizado."
+    : sucesso === "excluir"
+      ? "Produto excluído."
+      : sucesso === "produto"
+        ? "Produto salvo."
+        : null;
 
   return (
     <main>
@@ -23,6 +39,8 @@ export default async function AdminProdutosPage() {
           Cadastrar produto
         </Link>
       </div>
+      {mensagemErro && <p role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">{mensagemErro}</p>}
+      {mensagemSucesso && <p role="status" className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">{mensagemSucesso}</p>}
       {produtos?.length ? (
         <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
           <table className="w-full min-w-[700px] border-collapse text-left text-sm">
@@ -33,7 +51,7 @@ export default async function AdminProdutosPage() {
               {produtos.map((produto) => (
                 <tr key={produto.id} className="border-t border-stone-200">
                   <td className="p-3 font-semibold">{produto.nome}</td>
-                  <td className="p-3">{nomesCategoria.get(String(produto.categoria_id)) ?? "-"}</td>
+                  <td className="p-3">{nomesCategoria.get(produto.categoria) ?? "-"}</td>
                   <td className="p-3">{produto.status}</td>
                   <td className="p-3">
                     <div className="flex flex-wrap items-center gap-3">

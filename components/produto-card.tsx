@@ -8,7 +8,7 @@ type ProdutoCardData = {
   imagem: string | null;
   preco_atual: number | string | null;
   preco_antigo: number | string | null;
-  marketplaces?: { nome?: string } | { nome?: string }[] | null;
+  marketplace?: string | null;
 };
 
 function moeda(valor: number) {
@@ -25,9 +25,7 @@ export function ProdutoCard({ produto }: { produto: ProdutoCardData }) {
     Number.isFinite(antigo) &&
     antigo > atual;
   const desconto = temDesconto ? Math.round((1 - atual / antigo) * 100) : 0;
-  const marketplace = Array.isArray(produto.marketplaces)
-    ? produto.marketplaces[0]?.nome
-    : produto.marketplaces?.nome;
+  const marketplace = produto.marketplace;
 
   return (
     <article className="product-card group min-w-0">

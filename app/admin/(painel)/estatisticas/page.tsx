@@ -1,8 +1,8 @@
 import { requireAdmin } from "@/lib/admin/auth";
-import { CATEGORIAS, SLUGS_CATEGORIAS } from "@/lib/categorias";
+import { SLUGS_CATEGORIAS } from "@/lib/categorias";
 import { supabaseAdmin } from "@/utils/supabase";
 
-type Clique = { produto_id: string; origem: string | null; created_at: string };
+type Clique = { produto_id: string; origem: string | null; criado_em: string };
 
 function agrupar<T>(itens: T[], chave: (item: T) => string) {
   const contagem = new Map<string, number>();
@@ -40,22 +40,21 @@ export default async function EstatisticasPage() {
   const db = supabaseAdmin();
     const desde30 = corteDiasAtras(30);
   const [{ data: cliques }, { data: produtos }, { data: categorias }] = await Promise.all([
-    db.from("cliques").select("produto_id, origem, created_at").gte("created_at", desde30),
-    db.from("produtos").select("id, nome, categoria_id"),
-    db.from("categorias").select("id, slug").in("slug", SLUGS_CATEGORIAS),
+    db.from("cliques").select("produto_id, origem, criado_em").gte("criado_em", desde30),
+    db.from("produtos").select("id, nome, categoria"),
+    db.from("categorias").select("slug, nome").in("slug", SLUGS_CATEGORIAS),
   ]);
   const mapaProdutos = new Map((produtos ?? []).map((produto) => [String(produto.id), produto]));
-  const nomesPorSlug = new Map(CATEGORIAS.map((categoria) => [categoria.slug, categoria.nome]));
-  const mapaCategorias = new Map((categorias ?? []).map((categoria) => [String(categoria.id), nomesPorSlug.get(categoria.slug)]));
+  const mapaCategorias = new Map((categorias ?? []).map((categoria) => [categoria.slug, categoria.nome]));
   const todos = (cliques ?? []) as Clique[];
-    const seteDias = todos.filter((clique) => Date.parse(clique.created_at) >= Date.parse(corteDiasAtras(7)));
+    const seteDias = todos.filter((clique) => Date.parse(clique.criado_em) >= Date.parse(corteDiasAtras(7)));
 
   function secoes(periodo: Clique[]) {
     return {
       produtos: agrupar(periodo, (clique) => mapaProdutos.get(String(clique.produto_id))?.nome ?? "Produto removido"),
       categorias: agrupar(periodo, (clique) => {
         const produto = mapaProdutos.get(String(clique.produto_id));
-        return mapaCategorias.get(String(produto?.categoria_id)) ?? "Sem categoria";
+        return mapaCategorias.get(produto?.categoria ?? "") ?? "Sem categoria";
       }),
       origens: agrupar(periodo, (clique) => clique.origem ?? "direto"),
     };

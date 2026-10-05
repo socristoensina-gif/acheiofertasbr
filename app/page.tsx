@@ -9,7 +9,7 @@ import { supabaseAdmin } from "@/utils/supabase";
 
 export const revalidate = 600;
 
-type CliqueRecente = { produto_id: string | number };
+type CliqueRecente = { produto_id: string };
 
 async function buscarMaisProcurados() {
   const desde = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -17,11 +17,11 @@ async function buscarMaisProcurados() {
   const { data: cliques } = await admin
     .from("cliques")
     .select("produto_id")
-    .gte("created_at", desde);
+    .gte("criado_em", desde);
 
   const contagem = new Map<string, number>();
   for (const clique of (cliques ?? []) as CliqueRecente[]) {
-    const id = String(clique.produto_id);
+    const id = clique.produto_id;
     contagem.set(id, (contagem.get(id) ?? 0) + 1);
   }
   const idsMaisClicados = [...contagem.entries()]
@@ -32,7 +32,7 @@ async function buscarMaisProcurados() {
   if (idsMaisClicados.length) {
     const { data } = await supabase
       .from("produtos")
-      .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplaces(nome)")
+      .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplace")
       .eq("status", "publicado")
       .in("id", idsMaisClicados);
     const ordenarPorCliques = new Map(idsMaisClicados.map((id, index) => [id, index]));
@@ -46,9 +46,9 @@ async function buscarMaisProcurados() {
 
   const { data: recentes } = await supabase
     .from("produtos")
-    .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplaces(nome)")
+    .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplace")
     .eq("status", "publicado")
-    .order("created_at", { ascending: false })
+    .order("criado_em", { ascending: false })
     .limit(6);
   return recentes ?? [];
 }
@@ -57,16 +57,16 @@ export default async function Home() {
   const [{ data: ofertas }, { data: recentes }, maisProcurados] = await Promise.all([
     supabase
       .from("produtos")
-      .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplaces(nome)")
+      .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplace")
       .eq("status", "publicado")
       .eq("destaque", true)
-      .order("created_at", { ascending: false })
+      .order("criado_em", { ascending: false })
       .limit(10),
     supabase
       .from("produtos")
-      .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplaces(nome)")
+      .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplace")
       .eq("status", "publicado")
-      .order("created_at", { ascending: false })
+      .order("criado_em", { ascending: false })
       .limit(8),
     buscarMaisProcurados(),
   ]);

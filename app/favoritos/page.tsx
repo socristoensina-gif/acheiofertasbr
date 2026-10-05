@@ -4,7 +4,7 @@ import { supabase } from "@/utils/supabase";
 export default async function FavoritosPage() {
   const { data: produtos } = await supabase
     .from("produtos")
-    .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplaces(nome)")
+    .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplace")
     .eq("status", "publicado");
 
   return (

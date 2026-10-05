@@ -9,8 +9,8 @@ import { supabaseAdmin } from "@/utils/supabase";
 
 export type FormularioStatus = { erro?: string; sucesso?: boolean };
 
-const frequencias = ["diaria", "semanal", "quinzenal", "mensal"];
-const motivos = ["sugestao", "reclamacao", "pedido", "parceria_midia"];
+const frequencias = ["diaria", "semanal", "quinzenal", "mensal"] as const;
+const motivos = ["sugestao", "reclamacao", "pedido", "parceria_midia"] as const;
 const estados = new Set([
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG",
   "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
@@ -22,6 +22,10 @@ function campo(formData: FormData, nome: string) {
 
 function emailValido(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function pertenceA<T extends readonly string[]>(opcoes: T, valor: string): valor is T[number] {
+  return (opcoes as readonly string[]).includes(valor);
 }
 
 export async function inscreverNewsletter(
@@ -40,7 +44,7 @@ export async function inscreverNewsletter(
 
   if (nome.length < 2 || !emailValido(email)) return { erro: "Informe seu nome e um e-mail válido." };
   if (!categoriasValidas.length) return { erro: "Escolha ao menos uma categoria de interesse." };
-  if (!frequencias.includes(periodicidade)) return { erro: "Escolha a periodicidade dos envios." };
+  if (!pertenceA(frequencias, periodicidade)) return { erro: "Escolha a periodicidade dos envios." };
   if (!termosAceitos) return { erro: "É necessário aceitar os termos para se inscrever." };
   if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
     return { erro: "O envio ainda não está configurado. Tente novamente mais tarde." };
@@ -86,7 +90,7 @@ export async function enviarContato(
 
   if (nome.length < 2 || !emailValido(email)) return { erro: "Informe seu nome e um e-mail válido." };
   if (!estados.has(estado) || cidade.length < 2) return { erro: "Selecione seu estado e município." };
-  if (!motivos.includes(motivo)) return { erro: "Selecione o motivo do contato." };
+  if (!pertenceA(motivos, motivo)) return { erro: "Selecione o motivo do contato." };
   if (mensagem.length < 5) return { erro: "Escreva uma mensagem com pelo menos cinco caracteres." };
   if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
     return { erro: "O envio ainda não está configurado. Tente novamente mais tarde." };

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
 import { linkAfiliadoPermitido } from "@/lib/dominios-permitidos";
-import { SLUGS_CATEGORIAS } from "@/lib/categorias";
+import { isCategoriaSlug } from "@/lib/categorias";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/utils/supabase";
 
@@ -85,7 +85,7 @@ export async function salvarProduto(formData: FormData) {
   const id = texto(formData, "id") || null;
   const nome = texto(formData, "nome");
   const linkAfiliado = texto(formData, "link_afiliado");
-  const categoriaId = texto(formData, "categoria_id");
+  const categoriaSlug = texto(formData, "categoria");
   const precoAtual = Number(texto(formData, "preco_atual").replace(",", "."));
   const precoAntigoTexto = texto(formData, "preco_antigo");
   const precoAntigo = precoAntigoTexto ? Number(precoAntigoTexto.replace(",", ".")) : null;
@@ -94,28 +94,22 @@ export async function salvarProduto(formData: FormData) {
   const destinoErro = id ? `/admin/produtos/${id}` : "/admin/produtos/novo";
 
   if (
-    !nome || !categoriaId || !linkAfiliado || !linkAfiliadoPermitido(linkAfiliado) ||
+    !nome || !linkAfiliado || !linkAfiliadoPermitido(linkAfiliado) ||
     !Number.isFinite(precoAtual) || precoAtual < 0 ||
     (precoAntigo !== null && (!Number.isFinite(precoAntigo) || precoAntigo < 0)) ||
     !["publicado", "pausado"].includes(status)
   ) {
     redirect(`${destinoErro}?erro=campos`);
   }
+  if (!isCategoriaSlug(categoriaSlug)) redirect(`${destinoErro}?erro=categoria`);
 
   const nomeMarketplace = marketplaceDoLink(linkAfiliado);
   if (!nomeMarketplace) redirect(`${destinoErro}?erro=marketplace`);
-  const { data: marketplace } = await db
-    .from("marketplaces")
-    .select("id")
-    .ilike("nome", nomeMarketplace)
-    .maybeSingle();
-  if (!marketplace) redirect(`${destinoErro}?erro=marketplace`);
 
   const { data: categoria } = await db
     .from("categorias")
-    .select("id, slug")
-    .eq("id", categoriaId)
-    .in("slug", SLUGS_CATEGORIAS)
+    .select("slug")
+    .eq("slug", categoriaSlug)
     .maybeSingle();
   if (!categoria) redirect(`${destinoErro}?erro=categoria`);
 
@@ -126,8 +120,8 @@ export async function salvarProduto(formData: FormData) {
   const produto = {
     slug: await slugUnico(nome, id),
     nome,
-    categoria_id: categoriaId,
-    marketplace: marketplace.id,
+    categoria: categoriaSlug,
+    marketplace: nomeMarketplace,
     link_afiliado: linkAfiliado,
     imagem: texto(formData, "imagem") || null,
     preco_atual: precoAtual,
@@ -138,16 +132,15 @@ export async function salvarProduto(formData: FormData) {
     status,
   };
 
-  if (id) {
-    await db.from("produtos").update(produto).eq("id", id);
-  } else {
-    await db.from("produtos").insert(produto);
-  }
+  const resultado = id
+    ? await db.from("produtos").update(produto).eq("id", id).select("id").maybeSingle()
+    : await db.from("produtos").insert(produto).select("id").single();
+  if (resultado.error || !resultado.data) redirect(`${destinoErro}?erro=salvar`);
 
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/admin/estatisticas");
-  redirect("/admin");
+  redirect("/admin?sucesso=produto");
 }
 
 export async function alterarStatusProduto(formData: FormData) {
@@ -156,9 +149,16 @@ export async function alterarStatusProduto(formData: FormData) {
   const status = texto(formData, "status");
   if (!id || !["publicado", "pausado"].includes(status)) return;
 
-  await supabaseAdmin().from("produtos").update({ status }).eq("id", id);
+  const { data, error } = await supabaseAdmin()
+    .from("produtos")
+    .update({ status })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+  if (error || !data) redirect("/admin?erro=status");
   revalidatePath("/");
   revalidatePath("/admin");
+  redirect("/admin?sucesso=status");
 }
 
 export async function excluirProduto(formData: FormData) {
@@ -166,7 +166,15 @@ export async function excluirProduto(formData: FormData) {
   const id = texto(formData, "id");
   if (!id) return;
 
-  await supabaseAdmin().from("produtos").delete().eq("id", id);
+  const { data, error } = await supabaseAdmin()
+    .from("produtos")
+    .delete()
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+  if (error || !data) redirect("/admin?erro=excluir");
   revalidatePath("/");
   revalidatePath("/admin");
+  revalidatePath("/admin/estatisticas");
+  redirect("/admin?sucesso=excluir");
 }

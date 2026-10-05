@@ -10,7 +10,7 @@ export default async function NovoProdutoPage({
 }) {
   await requireAdmin();
   const [{ data: categorias }, { erro }] = await Promise.all([
-    supabaseAdmin().from("categorias").select("id, slug").in("slug", SLUGS_CATEGORIAS),
+    supabaseAdmin().from("categorias").select("slug, nome").in("slug", SLUGS_CATEGORIAS).order("ordem"),
     searchParams,
   ]);
 

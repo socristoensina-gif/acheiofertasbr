@@ -16,7 +16,7 @@ export default async function EditarProdutoPage({
   const db = supabaseAdmin();
   const [{ data: produto }, { data: categorias }] = await Promise.all([
     db.from("produtos").select("*").eq("id", id).maybeSingle(),
-    db.from("categorias").select("id, slug").in("slug", SLUGS_CATEGORIAS),
+    db.from("categorias").select("slug, nome").in("slug", SLUGS_CATEGORIAS).order("ordem"),
   ]);
   if (!produto) notFound();
 
