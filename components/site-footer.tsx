@@ -38,14 +38,6 @@ export function SiteFooter() {
                 <span key={social.name} title="Link do perfil a configurar">{social.name}</span>
               ))}
             </div>
-            <h3>Nossos canais no Facebook</h3>
-            <div className="footer-channel-links">
-              {SITE_CONFIG.facebookPages.map((pagina) => pagina.href ? (
-                <a href={pagina.href} key={pagina.name} target="_blank" rel="noopener noreferrer">{pagina.name}</a>
-              ) : (
-                <span key={pagina.name} title="Link da página a configurar">{pagina.name}</span>
-              ))}
-            </div>
           </section>
         </div>
       </div>

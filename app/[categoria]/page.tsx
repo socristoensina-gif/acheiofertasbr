@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProdutoCard } from "@/components/produto-card";
-import { CATEGORIES, CATEGORY_SLUGS } from "@/lib/config";
+import { CATEGORIAS } from "@/lib/categorias";
 import { supabase } from "@/utils/supabase";
 
 export default async function CategoriaPage({
@@ -9,8 +9,7 @@ export default async function CategoriaPage({
   params: Promise<{ categoria: string }>;
 }) {
   const { categoria: slug } = await params;
-  if (!CATEGORY_SLUGS.includes(slug as (typeof CATEGORY_SLUGS)[number])) notFound();
-  const categoria = CATEGORIES.find((item) => item.slug === slug);
+  const categoria = CATEGORIAS.find((item) => item.slug === slug);
   if (!categoria) notFound();
 
   const { data: produtos } = await supabase

@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { CATEGORIES } from "@/lib/config";
+import { CATEGORIAS } from "@/lib/categorias";
 import { enviarEmailDoPortal } from "@/lib/email";
 import { supabaseAdmin } from "@/utils/supabase";
 
@@ -35,7 +35,7 @@ export async function inscreverNewsletter(
   const categorias = formData.getAll("categorias").map(String);
   const periodicidade = campo(formData, "periodicidade");
   const termosAceitos = formData.get("aceite_termos") === "on";
-  const slugsPermitidos = new Set(CATEGORIES.map((categoria) => categoria.slug));
+  const slugsPermitidos = new Set(CATEGORIAS.map((categoria) => categoria.slug));
   const categoriasValidas = categorias.filter((slug) => slugsPermitidos.has(slug as never));
 
   if (nome.length < 2 || !emailValido(email)) return { erro: "Informe seu nome e um e-mail válido." };
@@ -57,7 +57,7 @@ export async function inscreverNewsletter(
 
   if (erroBanco) return { erro: "Não foi possível registrar sua inscrição. Tente novamente." };
 
-  const nomesCategorias = CATEGORIES
+  const nomesCategorias = CATEGORIAS
     .filter((categoria) => categoriasValidas.includes(categoria.slug))
     .map((categoria) => categoria.nome)
     .join(", ");

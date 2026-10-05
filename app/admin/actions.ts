@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
 import { linkAfiliadoPermitido } from "@/lib/dominios-permitidos";
-import { CATEGORY_SLUGS } from "@/lib/config";
+import { SLUGS_CATEGORIAS } from "@/lib/categorias";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/utils/supabase";
 
@@ -115,7 +115,7 @@ export async function salvarProduto(formData: FormData) {
     .from("categorias")
     .select("id, slug")
     .eq("id", categoriaId)
-    .in("slug", CATEGORY_SLUGS)
+    .in("slug", SLUGS_CATEGORIAS)
     .maybeSingle();
   if (!categoria) redirect(`${destinoErro}?erro=categoria`);
 

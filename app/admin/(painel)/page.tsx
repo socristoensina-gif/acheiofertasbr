@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { alterarStatusProduto, excluirProduto } from "@/app/admin/actions";
-import { CATEGORY_SLUGS } from "@/lib/config";
+import { CATEGORIAS, SLUGS_CATEGORIAS } from "@/lib/categorias";
 import { supabaseAdmin } from "@/utils/supabase";
 
 export default async function AdminProdutosPage() {
   const db = supabaseAdmin();
   const [{ data: produtos }, { data: categorias }] = await Promise.all([
     db.from("produtos").select("id, nome, slug, status, categoria_id, created_at").order("created_at", { ascending: false }),
-    db.from("categorias").select("id, nome").in("slug", CATEGORY_SLUGS),
+    db.from("categorias").select("id, slug").in("slug", SLUGS_CATEGORIAS),
   ]);
-  const nomesCategoria = new Map((categorias ?? []).map((item) => [String(item.id), item.nome]));
+  const nomesPorSlug = new Map(CATEGORIAS.map((item) => [item.slug, item.nome]));
+  const nomesCategoria = new Map((categorias ?? []).map((item) => [String(item.id), nomesPorSlug.get(item.slug)]));
 
   return (
     <main>

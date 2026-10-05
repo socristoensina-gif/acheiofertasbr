@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminProdutoForm } from "@/components/admin-produto-form";
 import { requireAdmin } from "@/lib/admin/auth";
-import { CATEGORY_SLUGS } from "@/lib/config";
+import { SLUGS_CATEGORIAS } from "@/lib/categorias";
 import { supabaseAdmin } from "@/utils/supabase";
 
 export default async function EditarProdutoPage({
@@ -16,7 +16,7 @@ export default async function EditarProdutoPage({
   const db = supabaseAdmin();
   const [{ data: produto }, { data: categorias }] = await Promise.all([
     db.from("produtos").select("*").eq("id", id).maybeSingle(),
-    db.from("categorias").select("id, nome").in("slug", CATEGORY_SLUGS).order("nome"),
+    db.from("categorias").select("id, slug").in("slug", SLUGS_CATEGORIAS),
   ]);
   if (!produto) notFound();
 

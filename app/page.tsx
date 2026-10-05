@@ -2,7 +2,8 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { FeaturedCarousel } from "@/components/featured-carousel";
 import { ProdutoCard } from "@/components/produto-card";
-import { CATEGORIES, CATEGORY_ICONS, WHATSAPP_CHANNEL_URL } from "@/lib/config";
+import { CATEGORIAS } from "@/lib/categorias";
+import { WHATSAPP_CHANNEL_URL } from "@/lib/config";
 import { supabase } from "@/utils/supabase";
 import { supabaseAdmin } from "@/utils/supabase";
 
@@ -82,9 +83,9 @@ export default async function Home() {
       )}
 
       <section className="category-grid" aria-label="Categorias" id="categorias">
-        {CATEGORIES.map((categoria) => (
+        {CATEGORIAS.map((categoria) => (
           <Link key={categoria.slug} href={`/${categoria.slug}`} className="category-tile">
-            <span className="category-emoji" aria-hidden="true">{CATEGORY_ICONS[categoria.slug] ?? "🏷️"}</span>
+            <span className="category-emoji" aria-hidden="true">{categoria.icone}</span>
             <span>{categoria.nome}</span>
           </Link>
         ))}

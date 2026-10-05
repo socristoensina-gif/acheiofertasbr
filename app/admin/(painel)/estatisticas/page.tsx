@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/admin/auth";
-import { CATEGORY_SLUGS } from "@/lib/config";
+import { CATEGORIAS, SLUGS_CATEGORIAS } from "@/lib/categorias";
 import { supabaseAdmin } from "@/utils/supabase";
 
 type Clique = { produto_id: string; origem: string | null; created_at: string };
@@ -42,10 +42,11 @@ export default async function EstatisticasPage() {
   const [{ data: cliques }, { data: produtos }, { data: categorias }] = await Promise.all([
     db.from("cliques").select("produto_id, origem, created_at").gte("created_at", desde30),
     db.from("produtos").select("id, nome, categoria_id"),
-    db.from("categorias").select("id, nome").in("slug", CATEGORY_SLUGS),
+    db.from("categorias").select("id, slug").in("slug", SLUGS_CATEGORIAS),
   ]);
   const mapaProdutos = new Map((produtos ?? []).map((produto) => [String(produto.id), produto]));
-  const mapaCategorias = new Map((categorias ?? []).map((categoria) => [String(categoria.id), categoria.nome]));
+  const nomesPorSlug = new Map(CATEGORIAS.map((categoria) => [categoria.slug, categoria.nome]));
+  const mapaCategorias = new Map((categorias ?? []).map((categoria) => [String(categoria.id), nomesPorSlug.get(categoria.slug)]));
   const todos = (cliques ?? []) as Clique[];
     const seteDias = todos.filter((clique) => Date.parse(clique.created_at) >= Date.parse(corteDiasAtras(7)));
 

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { salvarProduto } from "@/app/admin/actions";
+import { CATEGORIAS } from "@/lib/categorias";
 
-type Categoria = { id: string | number; nome: string };
+type Categoria = { id: string | number; slug: string };
 type Produto = {
   id: string;
   nome: string;
@@ -51,9 +52,12 @@ export function AdminProdutoForm({
           Categoria
           <select name="categoria_id" defaultValue={produto?.categoria_id ?? ""} required>
             <option value="" disabled>Selecione</option>
-            {categorias.map((categoria) => (
-              <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
-            ))}
+            {CATEGORIAS.flatMap((categoriaCanonica) => {
+              const categoria = categorias.find((item) => item.slug === categoriaCanonica.slug);
+              return categoria ? (
+                <option key={categoriaCanonica.slug} value={categoria.id}>{categoriaCanonica.nome}</option>
+              ) : [];
+            })}
           </select>
         </label>
         <label className="admin-field">

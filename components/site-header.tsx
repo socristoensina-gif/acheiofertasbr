@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { AtSign, Camera, ChevronDown, Heart, Menu, Music2, Search, ThumbsUp } from "lucide-react";
-import { CATEGORY_ICONS, SITE_CONFIG, WHATSAPP_CHANNEL_URL } from "@/lib/config";
+import { CATEGORIAS } from "@/lib/categorias";
+import { SITE_CONFIG, WHATSAPP_CHANNEL_URL } from "@/lib/config";
 
-type CategoriaMenu = { nome: string; slug: string };
 const iconesSocial = { Instagram: Camera, TikTok: Music2, Facebook: ThumbsUp, X: AtSign };
-export function SiteHeader({ categorias }: { categorias: CategoriaMenu[] }) {
+export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="header-topline">
@@ -51,9 +51,9 @@ export function SiteHeader({ categorias }: { categorias: CategoriaMenu[] }) {
         <details className="category-menu">
           <summary aria-label="Abrir categorias"><Menu size={20} /><span>Categorias</span><ChevronDown size={13} /></summary>
           <div className="category-menu-popover">
-            {categorias.map((categoria) => (
+            {CATEGORIAS.map((categoria) => (
               <Link key={categoria.slug} href={`/${categoria.slug}`}>
-                <span aria-hidden="true">{CATEGORY_ICONS[categoria.slug] ?? "🏷️"}</span>{categoria.nome}
+                <span aria-hidden="true">{categoria.icone}</span>{categoria.nome}
               </Link>
             ))}
           </div>

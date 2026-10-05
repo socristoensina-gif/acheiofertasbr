@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { inscreverNewsletter } from "@/app/comunicacao/actions";
-import { CATEGORIES } from "@/lib/config";
+import { CATEGORIAS } from "@/lib/categorias";
 
 export function NewsletterForm({ nomeInicial, emailInicial }: { nomeInicial: string; emailInicial: string }) {
   const [estado, action, pendente] = useActionState(inscreverNewsletter, {});
@@ -21,7 +21,7 @@ export function NewsletterForm({ nomeInicial, emailInicial }: { nomeInicial: str
       <fieldset className="choice-fieldset">
         <legend>Quais ofertas você quer receber?</legend>
         <div className="category-choices">
-          {CATEGORIES.map((categoria) => (
+          {CATEGORIAS.map((categoria) => (
             <label className="category-choice" key={categoria.slug}>
               <input type="checkbox" name="categorias" value={categoria.slug} />
               <span>{categoria.nome}</span>
