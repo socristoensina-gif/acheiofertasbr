@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { SITE_CONFIG } from "@/lib/config";
 
 const links = [
   ["Sobre", "/sobre"],
   ["Como funciona", "/como-funciona"],
+  ["Newsletter", "/newsletter"],
   ["Perguntas frequentes", "/faq"],
   ["Contato", "/contato"],
   ["Privacidade", "/privacidade"],
@@ -23,9 +25,29 @@ export function SiteFooter() {
             Alguns links são de afiliados. Podemos receber comissão, sem custo adicional para você.
           </p>
         </div>
-        <nav aria-label="Informações institucionais" className="footer-links">
-          {links.map(([nome, href]) => <Link href={href} key={href}>{nome}</Link>)}
-        </nav>
+        <div className="footer-navigation">
+          <nav aria-label="Informações institucionais" className="footer-links">
+            {links.map(([nome, href]) => <Link href={href} key={href}>{nome}</Link>)}
+          </nav>
+          <section className="footer-social" aria-labelledby="footer-social-title">
+            <h2 id="footer-social-title">Siga nossas redes</h2>
+            <div className="footer-social-links">
+              {SITE_CONFIG.socialLinks.map((social) => social.href ? (
+                <a href={social.href} key={social.name} target="_blank" rel="noopener noreferrer">{social.name}</a>
+              ) : (
+                <span key={social.name} title="Link do perfil a configurar">{social.name}</span>
+              ))}
+            </div>
+            <h3>Nossos canais no Facebook</h3>
+            <div className="footer-channel-links">
+              {SITE_CONFIG.facebookPages.map((pagina) => pagina.href ? (
+                <a href={pagina.href} key={pagina.name} target="_blank" rel="noopener noreferrer">{pagina.name}</a>
+              ) : (
+                <span key={pagina.name} title="Link da página a configurar">{pagina.name}</span>
+              ))}
+            </div>
+          </section>
+        </div>
       </div>
       <div className="footer-bottom">© {new Date().getFullYear()} Ache Ofertas BR</div>
     </footer>

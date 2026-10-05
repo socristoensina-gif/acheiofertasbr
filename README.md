@@ -56,3 +56,14 @@ IA:
 
 Ollama
 
+## Newsletter e contato
+
+Antes de ativar os formulários:
+
+1. Aplique as migrações SQL em `database/migrations/` no projeto Supabase.
+2. Configure `RESEND_API_KEY` e `RESEND_FROM_EMAIL` no ambiente do servidor. O domínio do remetente precisa estar verificado no Resend; as notificações são enviadas para `acheiofertas@gmail.com`.
+3. Habilite Google e Facebook em **Supabase Auth > Providers** e permita a URL `/auth/callback` na lista de redirects do projeto.
+4. Informe os links reais de Instagram, TikTok, Facebook e X, além dos cinco canais do Facebook, em `lib/config.ts`. Os campos começam vazios para evitar links incorretos.
+
+As listas de municípios do formulário de contato são carregadas da API pública de Localidades do IBGE.
+

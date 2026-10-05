@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Camera, ChevronDown, Heart, Menu, Music2, Search, ThumbsUp } from "lucide-react";
+import { AtSign, Camera, ChevronDown, Heart, Menu, Music2, Search, ThumbsUp } from "lucide-react";
 import { CATEGORY_ICONS, SITE_CONFIG, WHATSAPP_CHANNEL_URL } from "@/lib/config";
 
 type CategoriaMenu = { nome: string; slug: string };
-const iconesSocial = { Instagram: Camera, TikTok: Music2, Facebook: ThumbsUp };
+const iconesSocial = { Instagram: Camera, TikTok: Music2, Facebook: ThumbsUp, X: AtSign };
 export function SiteHeader({ categorias }: { categorias: CategoriaMenu[] }) {
   return (
     <header className="site-header">
@@ -11,12 +11,18 @@ export function SiteHeader({ categorias }: { categorias: CategoriaMenu[] }) {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <span>{SITE_CONFIG.topMessage}</span>
           <nav className="social-links" aria-label="Redes sociais">
-            {SITE_CONFIG.socialLinks.filter((social) => social.href).map((social) => {
+            {SITE_CONFIG.socialLinks.map((social) => {
               const Icon = iconesSocial[social.platform as keyof typeof iconesSocial];
               return (
-                <a href={social.href} key={social.name} aria-label={social.name} target="_blank" rel="noopener noreferrer" title={social.name}>
-                  <Icon size={15} />
-                </a>
+                social.href ? (
+                  <a href={social.href} key={social.name} aria-label={social.name} target="_blank" rel="noopener noreferrer" title={social.name}>
+                    <Icon size={15} />
+                  </a>
+                ) : (
+                  <span className="social-link-pending" key={social.name} aria-label={`${social.name}: link a configurar`} title={`${social.name}: link a configurar`}>
+                    <Icon size={15} />
+                  </span>
+                )
               );
             })}
           </nav>

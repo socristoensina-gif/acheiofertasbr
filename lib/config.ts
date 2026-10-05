@@ -1,13 +1,17 @@
 export const SITE_CONFIG = {
   topMessage: "Ofertas selecionadas para você",
   socialLinks: [
-    { name: "Face Compras", platform: "Facebook", href: "" },
-    { name: "Tech Boa Dica", platform: "Facebook", href: "" },
-    { name: "Crianças e Brinquedos", platform: "Facebook", href: "" },
-    { name: "AutoEstima", platform: "Facebook", href: "" },
-    { name: "Achados do Mestre", platform: "Facebook", href: "" },
+    { name: "Facebook", platform: "Facebook", href: "" },
     { name: "Instagram", platform: "Instagram", href: "" },
     { name: "TikTok", platform: "TikTok", href: "" },
+    { name: "X", platform: "X", href: "" },
+  ],
+  facebookPages: [
+    { name: "Face Compras", href: "" },
+    { name: "Tech Boa Dica", href: "" },
+    { name: "Crianças e Brinquedos", href: "" },
+    { name: "AutoEstima", href: "" },
+    { name: "Achados do Mestre", href: "" },
   ],
 };
 

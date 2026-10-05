@@ -8,6 +8,8 @@ export default function PrivacidadePage() {
       <p>Ao acessar um link de saída, podemos registrar o produto, o marketplace, a origem do acesso e informações técnicas da requisição para medir o funcionamento das ofertas.</p>
       <h2>Favoritos</h2>
       <p>Os produtos favoritos são guardados no armazenamento local do navegador e não são enviados ao servidor para criar uma conta.</p>
+      <h2>Newsletter e contato</h2>
+      <p>Se você se inscrever ou enviar uma mensagem, armazenamos os dados informados para administrar suas preferências e responder ao contato. As inscrições incluem nome, e-mail, categorias escolhidas, periodicidade e data de aceite dos termos. Este rascunho deve ser revisado antes da publicação definitiva.</p>
       <h2>Links externos</h2>
       <p>Ao seguir para um marketplace ou site de vendedor, o tratamento de dados passa a seguir as políticas daquele serviço.</p>
     </InstitutionalPage>
