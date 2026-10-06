@@ -64,16 +64,16 @@ export function ContactForm() {
       <label className="admin-field">E-mail<input name="email" type="email" autoComplete="email" maxLength={254} required /></label>
       <div className="contact-location-grid">
         <label className="admin-field">
-          Estado
-          <select name="estado" value={estado} onChange={(event) => { setEstado(event.target.value); setCidade(""); setMunicipios([]); setMunicipiosDaUf(""); }} required>
-            <option value="">Selecione</option>
+          Estado (opcional)
+          <select name="estado" value={estado} onChange={(event) => { setEstado(event.target.value); setCidade(""); setMunicipios([]); setMunicipiosDaUf(""); }}>
+            <option value="">Não informar</option>
             {estadosBrasil.map((item) => <option key={item.sigla} value={item.sigla}>{item.nome}</option>)}
           </select>
         </label>
         <label className="admin-field">
-          Município
-          <select name="cidade" value={cidade} onChange={(event) => setCidade(event.target.value)} disabled={!estado || carregando || !municipios.length} required>
-            <option value="">{carregando ? "Carregando municípios..." : estado ? "Selecione" : "Selecione o estado primeiro"}</option>
+          Município (opcional)
+          <select name="cidade" value={cidade} onChange={(event) => setCidade(event.target.value)} disabled={!estado || carregando || !municipios.length}>
+            <option value="">{carregando ? "Carregando municípios..." : estado ? "Não informar" : "Selecione uma UF para escolher"}</option>
             {municipios.map((municipio) => <option key={municipio.id} value={municipio.nome}>{municipio.nome}</option>)}
           </select>
         </label>

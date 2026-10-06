@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { inscreverNewsletter } from "@/app/comunicacao/actions";
 import { CATEGORIAS } from "@/lib/categorias";
+import { CONSENTIMENTO_TEXTO } from "@/lib/consentimento";
 
 export function NewsletterForm({ nomeInicial, emailInicial }: { nomeInicial: string; emailInicial: string }) {
   const [estado, action, pendente] = useActionState(inscreverNewsletter, {});
@@ -47,8 +48,9 @@ export function NewsletterForm({ nomeInicial, emailInicial }: { nomeInicial: str
       </fieldset>
       <label className="terms-consent">
         <input type="checkbox" name="aceite_termos" required />
-        <span>Concordo com a <Link href="/privacidade">Política de Privacidade</Link> e os <Link href="/termos">Termos de Uso</Link>.</span>
+        <span>{CONSENTIMENTO_TEXTO}</span>
       </label>
+      <p>Leia a <Link href="/privacidade">Política de Privacidade</Link> e os <Link href="/termos">Termos de Uso</Link>.</p>
       <label className="honeypot" aria-hidden="true">
         Site
         <input name="website" tabIndex={-1} autoComplete="off" />

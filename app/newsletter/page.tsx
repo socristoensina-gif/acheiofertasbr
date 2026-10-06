@@ -16,7 +16,7 @@ export default async function NewsletterPage({
     <InstitutionalPage title="Receba ofertas por e-mail">
       <p>Escolha os assuntos e a frequência com que deseja receber ofertas.</p>
       {erro === "oauth" && <p role="alert" className="form-error">Não foi possível entrar com essa rede social. Verifique a configuração e tente novamente.</p>}
-      {!user && (
+      {process.env.NEXT_PUBLIC_LOGIN_SOCIAL === "true" && !user && (
         <div className="oauth-options">
           <form action={entrarComGoogle}>
             <button type="submit" className="oauth-button">Continuar com Google</button>

@@ -9,7 +9,7 @@ export default function PrivacidadePage() {
       <h2>Favoritos</h2>
       <p>Os produtos favoritos são guardados no armazenamento local do navegador e não são enviados ao servidor para criar uma conta.</p>
       <h2>Newsletter e contato</h2>
-      <p>Se você se inscrever ou enviar uma mensagem, armazenamos os dados informados para administrar suas preferências e responder ao contato. As inscrições incluem nome, e-mail, categorias escolhidas, periodicidade e data de aceite dos termos. Este rascunho deve ser revisado antes da publicação definitiva.</p>
+      <p>Se você se inscrever ou enviar uma mensagem, armazenamos os dados informados para administrar suas preferências e responder ao contato. As inscrições incluem nome, e-mail, categorias escolhidas, periodicidade, texto e versão do consentimento e data de aceite. Para limitar envios abusivos, usamos o IP da requisição apenas para calcular um hash SHA-256 com um segredo do servidor; não armazenamos nem registramos o IP puro. Este rascunho deve ser revisado antes da publicação definitiva.</p>
       <h2>Links externos</h2>
       <p>Ao seguir para um marketplace ou site de vendedor, o tratamento de dados passa a seguir as políticas daquele serviço.</p>
     </InstitutionalPage>

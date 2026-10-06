@@ -60,6 +60,11 @@ type NewsletterAssinanteRow = {
   categorias: string[];
   periodicidade: "diaria" | "semanal" | "quinzenal" | "mensal";
   termos_aceitos_em: string;
+  consentimento_texto: string | null;
+  consentimento_versao: string | null;
+  token_descadastro: string;
+  confirmado_em: string | null;
+  cancelado_em: string | null;
   criado_em: string;
   atualizado_em: string;
 };
@@ -68,8 +73,8 @@ type ContatoRow = {
   id: string;
   nome: string;
   email: string;
-  estado: string;
-  cidade: string;
+  estado: string | null;
+  cidade: string | null;
   motivo: "sugestao" | "reclamacao" | "pedido" | "parceria_midia";
   mensagem: string;
   criado_em: string;
@@ -116,19 +121,38 @@ export type Database = {
       >;
       newsletter_assinantes: Table<
         NewsletterAssinanteRow,
-        Omit<NewsletterAssinanteRow, "id" | "criado_em" | "atualizado_em"> & {
+        Omit<NewsletterAssinanteRow, "id" | "criado_em" | "atualizado_em" | "token_descadastro" | "consentimento_texto" | "consentimento_versao" | "confirmado_em" | "cancelado_em"> & {
           id?: string;
           criado_em?: string;
           atualizado_em?: string;
+          token_descadastro?: string;
+          consentimento_texto?: string | null;
+          consentimento_versao?: string | null;
+          confirmado_em?: string | null;
+          cancelado_em?: string | null;
         }
       >;
       contatos: Table<
         ContatoRow,
-        Omit<ContatoRow, "id" | "criado_em"> & { id?: string; criado_em?: string }
+        Omit<ContatoRow, "id" | "criado_em" | "estado" | "cidade"> & {
+          id?: string;
+          criado_em?: string;
+          estado?: string | null;
+          cidade?: string | null;
+        }
+      >;
+      rate_limits: Table<
+        { chave: string; janela: string; contagem: number },
+        { chave: string; janela: string; contagem?: number }
       >;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      incrementar_rate_limit: {
+        Args: { p_chave: string; p_janela: string };
+        Returns: number;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
