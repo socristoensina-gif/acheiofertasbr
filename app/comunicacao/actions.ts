@@ -69,7 +69,7 @@ export async function inscreverNewsletter(
   if (!categoriasValidas.length) return { erro: "Escolha ao menos uma categoria de interesse." };
   if (!pertenceA(frequencias, periodicidade)) return { erro: "Escolha a periodicidade dos envios." };
   if (!termosAceitos) return { erro: "É necessário aceitar os termos para se inscrever." };
-  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
+  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL || !process.env.CONTACT_NOTIFY_EMAIL) {
     return { erro: "O envio ainda não está configurado. Tente novamente mais tarde." };
   }
 
@@ -124,7 +124,7 @@ export async function enviarContato(
   }
   if (!pertenceA(motivos, motivo)) return { erro: "Selecione o motivo do contato." };
   if (mensagem.length < 5) return { erro: "Escreva uma mensagem com pelo menos cinco caracteres." };
-  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
+  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL || !process.env.CONTACT_NOTIFY_EMAIL) {
     return { erro: "O envio ainda não está configurado. Tente novamente mais tarde." };
   }
 

@@ -1,9 +1,8 @@
-const DESTINO_CONTATO = "acheiofertas@gmail.com";
-
 export async function enviarEmailDoPortal(assunto: string, texto: string) {
   const apiKey = process.env.RESEND_API_KEY;
   const remetente = process.env.RESEND_FROM_EMAIL;
-  if (!apiKey || !remetente) return false;
+  const destinatario = process.env.CONTACT_NOTIFY_EMAIL;
+  if (!apiKey || !remetente || !destinatario) return false;
 
   try {
     const resposta = await fetch("https://api.resend.com/emails", {
@@ -14,7 +13,7 @@ export async function enviarEmailDoPortal(assunto: string, texto: string) {
       },
       body: JSON.stringify({
         from: remetente,
-        to: [DESTINO_CONTATO],
+        to: [destinatario],
         subject: assunto,
         text: texto,
       }),
