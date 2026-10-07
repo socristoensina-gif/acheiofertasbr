@@ -6,83 +6,12 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-type Relationship = {
-  foreignKeyName: string;
-  columns: string[];
-  isOneToOne: boolean;
-  referencedRelation: string;
-  referencedColumns: string[];
-};
-
-type Table<
-  Row,
-  Insert,
-  Update = Partial<Insert>,
-  Relationships extends Relationship[] = [],
-> = {
+type Table<Row, Insert, Update = Partial<Insert>> = {
   Row: Row;
   Insert: Insert;
   Update: Update;
-  Relationships: Relationships;
+  Relationships: [];
 };
-
-type FonteIntegracaoRelationships = [
-  {
-    foreignKeyName: "fontes_integracao_marketplace_id_fkey";
-    columns: ["marketplace_id"];
-    isOneToOne: false;
-    referencedRelation: "marketplaces";
-    referencedColumns: ["id"];
-  },
-];
-
-type ProdutoOfertaRelationships = [
-  {
-    foreignKeyName: "produto_ofertas_produto_id_fkey";
-    columns: ["produto_id"];
-    isOneToOne: false;
-    referencedRelation: "produtos";
-    referencedColumns: ["id"];
-  },
-  {
-    foreignKeyName: "produto_ofertas_marketplace_id_fkey";
-    columns: ["marketplace_id"];
-    isOneToOne: false;
-    referencedRelation: "marketplaces";
-    referencedColumns: ["id"];
-  },
-  {
-    foreignKeyName: "produto_ofertas_afiliado_id_fkey";
-    columns: ["afiliado_id"];
-    isOneToOne: false;
-    referencedRelation: "afiliados";
-    referencedColumns: ["id"];
-  },
-  {
-    foreignKeyName: "produto_ofertas_fonte_integracao_id_fkey";
-    columns: ["fonte_integracao_id"];
-    isOneToOne: false;
-    referencedRelation: "fontes_integracao";
-    referencedColumns: ["id"];
-  },
-];
-
-type CliqueRelationships = [
-  {
-    foreignKeyName: "cliques_produto_oferta_id_fkey";
-    columns: ["produto_oferta_id"];
-    isOneToOne: false;
-    referencedRelation: "produto_ofertas";
-    referencedColumns: ["id"];
-  },
-  {
-    foreignKeyName: "cliques_fonte_integracao_id_fkey";
-    columns: ["fonte_integracao_id"];
-    isOneToOne: false;
-    referencedRelation: "fontes_integracao";
-    referencedColumns: ["id"];
-  },
-];
 
 type CategoriaRow = {
   slug: string;
@@ -118,56 +47,9 @@ type ProdutoRow = {
 type CliqueRow = {
   id: string;
   produto_id: string;
-  produto_oferta_id: string | null;
-  fonte_integracao_id: string | null;
   origem: string | null;
   marketplace: string;
   user_agent: string | null;
-  criado_em: string;
-};
-
-type AfiliadoRow = {
-  id: string;
-  nome: string;
-  email: string | null;
-  tipo: string;
-  ativo: boolean;
-  criado_em: string;
-};
-
-type FonteIntegracaoRow = {
-  id: string;
-  marketplace_id: string | null;
-  nome: string;
-  tipo_integracao: "API" | "LINK" | "MANUAL" | "N8N";
-  status: string;
-  ultima_sincronizacao: string | null;
-  criado_em: string;
-};
-
-type ProdutoOfertaRow = {
-  id: string;
-  produto_id: string;
-  marketplace_id: string;
-  afiliado_id: string;
-  fonte_integracao_id: string | null;
-  id_externo: string | null;
-  url_original: string | null;
-  link_afiliado: string;
-  titulo_original: string | null;
-  descricao_original: string | null;
-  imagem_original: Json | null;
-  video_original: Json | null;
-  preco_atual: number | null;
-  preco_anterior: number | null;
-  avaliacao: number | null;
-  quantidade_vendas: number | null;
-  disponibilidade: boolean | null;
-  comissao_interna: number | null;
-  ativo: boolean;
-  principal: boolean;
-  fonte_dados: string | null;
-  ultima_atualizacao: string;
   criado_em: string;
 };
 
@@ -186,7 +68,6 @@ type ImportacaoOfertaRow = {
   criado_em: string;
   processado_em: string | null;
 };
-
 type NewsletterAssinanteRow = {
   id: string;
   nome: string;
@@ -249,82 +130,9 @@ export type Database = {
           fonte_dados?: string | null;
         }
       >;
-      marketplaces: Table<
-        { id: string; nome: string; ativo: boolean },
-        { id: string; nome: string; ativo?: boolean },
-        Partial<{ id: string; nome: string; ativo: boolean }>
-      >;
       cliques: Table<
         CliqueRow,
-        Omit<CliqueRow, "id" | "criado_em" | "produto_oferta_id" | "fonte_integracao_id"> & {
-          id?: string;
-          criado_em?: string;
-          produto_oferta_id?: string | null;
-          fonte_integracao_id?: string | null;
-        },
-        Partial<Omit<CliqueRow, "id" | "criado_em">>,
-        CliqueRelationships
-      >;
-      afiliados: Table<
-        AfiliadoRow,
-        {
-          id?: string;
-          nome: string;
-          email?: string | null;
-          tipo: string;
-          ativo?: boolean;
-          criado_em?: string;
-        }
-      >;
-      fontes_integracao: Table<
-        FonteIntegracaoRow,
-        {
-          id?: string;
-          marketplace_id?: string | null;
-          nome: string;
-          tipo_integracao: FonteIntegracaoRow["tipo_integracao"];
-          status?: string;
-          ultima_sincronizacao?: string | null;
-          criado_em?: string;
-        },
-        Partial<{
-          marketplace_id: string | null;
-          nome: string;
-          tipo_integracao: FonteIntegracaoRow["tipo_integracao"];
-          status: string;
-          ultima_sincronizacao: string | null;
-        }>,
-        FonteIntegracaoRelationships
-      >;
-      produto_ofertas: Table<
-        ProdutoOfertaRow,
-        {
-          id?: string;
-          produto_id: string;
-          marketplace_id: string;
-          afiliado_id: string;
-          fonte_integracao_id?: string | null;
-          id_externo?: string | null;
-          url_original?: string | null;
-          link_afiliado: string;
-          titulo_original?: string | null;
-          descricao_original?: string | null;
-          imagem_original?: Json | null;
-          video_original?: Json | null;
-          preco_atual?: number | null;
-          preco_anterior?: number | null;
-          avaliacao?: number | null;
-          quantidade_vendas?: number | null;
-          disponibilidade?: boolean | null;
-          comissao_interna?: number | null;
-          ativo?: boolean;
-          principal?: boolean;
-          fonte_dados?: string | null;
-          ultima_atualizacao?: string;
-          criado_em?: string;
-        },
-        Partial<Omit<ProdutoOfertaRow, "id" | "criado_em">>,
-        ProdutoOfertaRelationships
+        Omit<CliqueRow, "id" | "criado_em"> & { id?: string; criado_em?: string }
       >;
       importacoes_ofertas: Table<
         ImportacaoOfertaRow,
@@ -342,10 +150,8 @@ export type Database = {
           criado_por?: string | null;
           criado_em?: string;
           processado_em?: string | null;
-        },
-        Partial<Omit<ImportacaoOfertaRow, "id" | "criado_em">>
-      >;
-      newsletter_assinantes: Table<
+        }
+      >;      newsletter_assinantes: Table<
         NewsletterAssinanteRow,
         Omit<NewsletterAssinanteRow, "id" | "criado_em" | "atualizado_em" | "token_descadastro" | "consentimento_texto" | "consentimento_versao" | "confirmado_em" | "cancelado_em"> & {
           id?: string;
@@ -374,10 +180,6 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
-      selecionar_produto_oferta_principal: {
-        Args: { p_oferta_id: string };
-        Returns: undefined;
-      };
       incrementar_rate_limit: {
         Args: { p_chave: string; p_janela: string };
         Returns: number;
