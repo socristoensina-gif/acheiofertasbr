@@ -1,10 +1,34 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { AtSign, Camera, ChevronDown, Heart, Menu, Music2, Search, ThumbsUp } from "lucide-react";
 import { CATEGORIAS } from "@/lib/categorias";
 import { SITE_CONFIG, WHATSAPP_CHANNEL_URL } from "@/lib/config";
 
 const iconesSocial = { Instagram: Camera, TikTok: Music2, Facebook: ThumbsUp, X: AtSign };
 export function SiteHeader() {
+  const pathname = usePathname();
+  const [categoriasAbertasEm, setCategoriasAbertasEm] = useState<string | null>(null);
+  const categoriasAbertas = categoriasAbertasEm === pathname;
+  const dropdownRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const fecharAoClicarFora = (event: MouseEvent) => {
+      if (event.target instanceof Node && !dropdownRef.current?.contains(event.target)) {
+        setCategoriasAbertasEm(null);
+      }
+    };
+
+    document.addEventListener("mousedown", fecharAoClicarFora);
+    document.addEventListener("click", fecharAoClicarFora);
+    return () => {
+      document.removeEventListener("mousedown", fecharAoClicarFora);
+      document.removeEventListener("click", fecharAoClicarFora);
+    };
+  }, []);
+
   return (
     <header className="site-header">
       <div className="header-topline">
@@ -48,11 +72,19 @@ export function SiteHeader() {
             <Search size={19} />
           </button>
         </form>
-        <details className="category-menu">
-          <summary aria-label="Abrir categorias"><Menu size={20} /><span>Categorias</span><ChevronDown size={13} /></summary>
+        <details className="category-menu" ref={dropdownRef} open={categoriasAbertas}>
+          <summary
+            aria-label="Abrir categorias"
+            onClick={(event) => {
+              event.preventDefault();
+              setCategoriasAbertasEm(categoriasAbertas ? null : pathname);
+            }}
+          >
+            <Menu size={20} /><span>Categorias</span><ChevronDown size={13} />
+          </summary>
           <div className="category-menu-popover">
             {CATEGORIAS.map((categoria) => (
-              <Link key={categoria.slug} href={`/${categoria.slug}`}>
+              <Link key={categoria.slug} href={`/${categoria.slug}`} onClick={() => setCategoriasAbertasEm(null)}>
                 <span aria-hidden="true">{categoria.icone}</span>{categoria.nome}
               </Link>
             ))}
