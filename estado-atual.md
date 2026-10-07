@@ -75,7 +75,7 @@ database/migrations/20261005\_categorias-marketplace.sql
 database/migrations/20261005\_newsletter-contato.sql
 database/migrations/20261006_newsletter-conformidade.sql
 
-20261005_newsletter-contato.sql cria newsletter_assinantes e contatos e habilita RLS, sem políticas públicas. 20261006_newsletter-conformidade.sql adiciona consentimento, token de descadastro, confirmação, cancelamento, tabela rate_limits com RLS sem políticas públicas, RPC de incremento atômico e torna UF/município anuláveis. 20261005_categorias-marketplace.sql insere/atualiza as sete linhas em categorias, remapeia produtos e remove slugs antigos; não cria as tabelas categorias ou produtos. Nenhuma migração foi aplicada nesta sessão.
+Ordem de aplicação manual: 20261005_categorias-marketplace.sql (pressupõe as tabelas categorias e produtos existentes), 20261005_newsletter-contato.sql (cria newsletter_assinantes e contatos e habilita RLS, sem políticas públicas), e por último 20261006_newsletter-conformidade.sql (depende das tabelas newsletter_assinantes e contatos; adiciona consentimento/descadastro, torna UF/município anuláveis e cria rate_limits com RLS e a função incrementar_rate_limit). Antes de executar, conferir no Supabase quais migrações já foram aplicadas.
 
 O código usa produtos.categoria como slug relacionado a categorias.slug. O admin valida o slug e grava diretamente em produtos.categoria; as páginas públicas filtram pela mesma coluna.
 
@@ -153,4 +153,3 @@ Fazer testes de ponta a ponta de inscrição e contato em ambiente configurado.
 Implementar descadastro e worker/cron para entregas segmentadas da newsletter.
 
 Planejar integrações de pesquisa externa e anúncios com regras explícitas de transparência e prioridade comercial.
-

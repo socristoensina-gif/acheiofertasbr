@@ -36,12 +36,13 @@ Também foram testados no navegador os formulários responsivos e a carga de mun
 
 ### Supabase
 
-Aplicar as duas migrações manualmente no projeto Supabase:
+Aplicar manualmente no projeto Supabase, nesta ordem:
 
 1. `database/migrations/20261005_categorias-marketplace.sql`
 2. `database/migrations/20261005_newsletter-contato.sql`
+3. `database/migrations/20261006_newsletter-conformidade.sql`
 
-`20261005_newsletter-contato.sql` cria `newsletter_assinantes` e `contatos` e habilita RLS, sem políticas públicas. `20261005_categorias-marketplace.sql` insere/atualiza as sete linhas em `categorias`, remapeia produtos e remove slugs antigos; não cria as tabelas `categorias` ou `produtos`. Nenhuma das migrações foi executada nesta sessão.
+`20261005_newsletter-contato.sql` cria `newsletter_assinantes` e `contatos` e habilita RLS, sem políticas públicas. A migration `20261006_newsletter-conformidade.sql` depende dessas tabelas: adiciona campos de consentimento/descadastro, torna UF e município opcionais e cria `rate_limits` e a função `incrementar_rate_limit`. Portanto, ela deve ser aplicada somente depois da migration base. `20261005_categorias-marketplace.sql` insere/atualiza as sete linhas em `categorias`, remapeia produtos e remove slugs antigos; pressupõe que as tabelas `categorias` e `produtos` já existam e não altera o schema de produtos. Antes de executar, confira no Supabase quais migrations já foram aplicadas.
 
 O código usa `produtos.categoria` como slug relacionado a `categorias.slug`. O admin valida o slug e grava diretamente em `produtos.categoria`; as páginas públicas filtram pela mesma coluna.
 

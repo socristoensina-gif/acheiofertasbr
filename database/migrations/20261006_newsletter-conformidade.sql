@@ -25,7 +25,10 @@ ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.rate_limits FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.rate_limits TO service_role;
 
-CREATE OR REPLACE FUNCTION public.incrementar_rate_limit(p_chave text, p_janela timestamptz)
+CREATE OR REPLACE FUNCTION public.incrementar_rate_limit(
+  p_chave text,
+  p_janela timestamptz
+)
 RETURNS int
 LANGUAGE plpgsql
 SET search_path = public, pg_temp
