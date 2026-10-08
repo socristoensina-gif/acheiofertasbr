@@ -43,7 +43,7 @@ export function FeaturedCarousel({ produtos }: { produtos: ProdutoDestaque[] }) 
         {maiorDesconto > 0 && <span className="featured-discount">Até {maiorDesconto}% OFF</span>}
         <p className="featured-eyebrow">Em destaque</p>
         <h1>{produto.nome}</h1>
-        {Number.isFinite(Number(produto.preco_atual)) && (
+        {produto.preco_atual !== null && Number.isFinite(Number(produto.preco_atual)) && (
           <p className="featured-price">{moeda(Number(produto.preco_atual))}</p>
         )}
         <Link href={`/produto/${produto.slug}`} className="featured-button">

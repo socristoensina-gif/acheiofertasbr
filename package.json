@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "test:import": "node --experimental-strip-types --test tests/import-readiness.test.mjs",
+    "test:media": "node --experimental-strip-types --test tests/video-playback.test.mjs",
     "start": "next start",
     "lint": "eslint"
   },

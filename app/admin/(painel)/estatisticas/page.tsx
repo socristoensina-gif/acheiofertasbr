@@ -2,7 +2,13 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { SLUGS_CATEGORIAS } from "@/lib/categorias";
 import { supabaseAdmin } from "@/utils/supabase";
 
-type Clique = { produto_id: string; origem: string | null; criado_em: string };
+type Clique = {
+  produto_id: string;
+  produto_oferta_id: string | null;
+  marketplace: string;
+  origem: string | null;
+  criado_em: string;
+};
 
 function agrupar<T>(itens: T[], chave: (item: T) => string) {
   const contagem = new Map<string, number>();
@@ -38,16 +44,35 @@ function ListaEstatistica({ titulo, itens }: { titulo: string; itens: [string, n
 export default async function EstatisticasPage() {
   await requireAdmin();
   const db = supabaseAdmin();
-    const desde30 = corteDiasAtras(30);
-  const [{ data: cliques }, { data: produtos }, { data: categorias }] = await Promise.all([
-    db.from("cliques").select("produto_id, origem, criado_em").gte("criado_em", desde30),
+  const desde30 = corteDiasAtras(30);
+  const [
+    { data: cliques, error: erroCliques },
+    { data: produtos, error: erroProdutos },
+    { data: categorias, error: erroCategorias },
+  ] = await Promise.all([
+    db.from("cliques").select("produto_id, produto_oferta_id, marketplace, origem, criado_em").gte("criado_em", desde30),
     db.from("produtos").select("id, nome, categoria"),
     db.from("categorias").select("slug, nome").in("slug", SLUGS_CATEGORIAS),
   ]);
+  if (erroCliques) throw erroCliques;
+  if (erroProdutos) throw erroProdutos;
+  if (erroCategorias) throw erroCategorias;
+  const idsOfertas = [
+    ...new Set(
+      (cliques ?? [])
+        .map((clique) => clique.produto_oferta_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const { data: ofertas, error: erroOfertas } = idsOfertas.length
+    ? await db.from("produto_ofertas").select("id, produto_id, marketplace_id").in("id", idsOfertas)
+    : { data: [], error: null };
+  if (erroOfertas) throw erroOfertas;
   const mapaProdutos = new Map((produtos ?? []).map((produto) => [String(produto.id), produto]));
   const mapaCategorias = new Map((categorias ?? []).map((categoria) => [categoria.slug, categoria.nome]));
+  const mapaOfertas = new Map((ofertas ?? []).map((oferta) => [oferta.id, oferta]));
   const todos = (cliques ?? []) as Clique[];
-    const seteDias = todos.filter((clique) => Date.parse(clique.criado_em) >= Date.parse(corteDiasAtras(7)));
+  const seteDias = todos.filter((clique) => Date.parse(clique.criado_em) >= Date.parse(corteDiasAtras(7)));
 
   function secoes(periodo: Clique[]) {
     return {
@@ -56,6 +81,15 @@ export default async function EstatisticasPage() {
         const produto = mapaProdutos.get(String(clique.produto_id));
         return mapaCategorias.get(produto?.categoria ?? "") ?? "Sem categoria";
       }),
+      ofertas: agrupar(periodo, (clique) => {
+        const oferta = clique.produto_oferta_id
+          ? mapaOfertas.get(clique.produto_oferta_id)
+          : undefined;
+        const nomeProduto = mapaProdutos.get(String(clique.produto_id))?.nome ?? "Produto removido";
+        if (oferta) return `${nomeProduto} · ${oferta.marketplace_id}`;
+        return clique.produto_oferta_id ? "Oferta removida" : "Oferta legada";
+      }),
+      marketplaces: agrupar(periodo, (clique) => clique.marketplace || "Não identificado"),
       origens: agrupar(periodo, (clique) => clique.origem ?? "direto"),
     };
   }
@@ -73,6 +107,8 @@ export default async function EstatisticasPage() {
             <h2 className="mb-5 border-b border-stone-300 pb-2 text-xl font-bold">Últimos {dias} dias</h2>
             <div className="grid gap-8 md:grid-cols-2">
               <ListaEstatistica titulo="Por produto" itens={dados.produtos} />
+              <ListaEstatistica titulo="Por oferta" itens={dados.ofertas} />
+              <ListaEstatistica titulo="Por marketplace" itens={dados.marketplaces} />
               <ListaEstatistica titulo="Por categoria" itens={dados.categorias} />
               <ListaEstatistica titulo="Por origem" itens={dados.origens} />
             </div>

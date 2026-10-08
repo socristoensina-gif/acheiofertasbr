@@ -1,4 +1,6 @@
 import { ProdutoCard } from "@/components/produto-card";
+import { connection } from "next/server";
+import { incluirMelhoresOfertas } from "@/lib/ofertas-publicas";
 import { supabase } from "@/utils/supabase";
 
 export default async function BuscaPage({
@@ -7,16 +9,19 @@ export default async function BuscaPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q: consulta = "" } = await searchParams;
+  await connection();
   const termo = consulta.trim().slice(0, 100);
   const termoEscapado = termo.replace(/[\\%_]/g, "\\$&");
-  const { data: produtos } = termo
+  const { data: produtosOriginais, error } = termo
     ? await supabase
         .from("produtos")
         .select("id, slug, nome, imagem, preco_atual, preco_antigo")
         .eq("status", "publicado")
         .ilike("nome", `%${termoEscapado}%`)
         .order("criado_em", { ascending: false })
-    : { data: [] };
+    : { data: [], error: null };
+  if (error) throw error;
+  const produtos = await incluirMelhoresOfertas(produtosOriginais ?? []);
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">

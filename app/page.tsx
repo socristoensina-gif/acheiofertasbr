@@ -1,13 +1,13 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { MessageCircle } from "lucide-react";
 import { FeaturedCarousel } from "@/components/featured-carousel";
 import { ProdutoCard } from "@/components/produto-card";
 import { CATEGORIAS } from "@/lib/categorias";
 import { WHATSAPP_CHANNEL_URL } from "@/lib/config";
+import { incluirMelhoresOfertas } from "@/lib/ofertas-publicas";
 import { supabase } from "@/utils/supabase";
 import { supabaseAdmin } from "@/utils/supabase";
-
-export const revalidate = 600;
 
 type CliqueRecente = { produto_id: string };
 
@@ -36,7 +36,7 @@ async function buscarMaisProcurados() {
       .eq("status", "publicado")
       .in("id", idsMaisClicados);
     const ordenarPorCliques = new Map(idsMaisClicados.map((id, index) => [id, index]));
-    const publicados = data ?? [];
+    const publicados = await incluirMelhoresOfertas(data ?? []);
     if (publicados.length) {
       return [...publicados].sort(
         (a, b) => (ordenarPorCliques.get(String(a.id)) ?? Infinity) - (ordenarPorCliques.get(String(b.id)) ?? Infinity),
@@ -50,11 +50,12 @@ async function buscarMaisProcurados() {
     .eq("status", "publicado")
     .order("criado_em", { ascending: false })
     .limit(6);
-  return recentes ?? [];
+  return incluirMelhoresOfertas(recentes ?? []);
 }
 
 export default async function Home() {
-  const [{ data: ofertas }, { data: recentes }, maisProcurados] = await Promise.all([
+  await connection();
+  const [{ data: ofertasOriginais }, { data: recentesOriginais }, maisProcurados] = await Promise.all([
     supabase
       .from("produtos")
       .select("id, slug, nome, imagem, preco_atual, preco_antigo, marketplace")
@@ -69,6 +70,10 @@ export default async function Home() {
       .order("criado_em", { ascending: false })
       .limit(8),
     buscarMaisProcurados(),
+  ]);
+  const [ofertas, recentes] = await Promise.all([
+    incluirMelhoresOfertas(ofertasOriginais ?? []),
+    incluirMelhoresOfertas(recentesOriginais ?? []),
   ]);
 
   return (

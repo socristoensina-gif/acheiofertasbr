@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { VideoPlayer } from "@/components/video-player";
 import { AdminImportacaoAssistida } from "@/components/admin-importacao-assistida";
 import { AdminShopeeLinkConverter } from "@/components/admin-shopee-link-converter";
 import {
@@ -215,9 +216,9 @@ export default async function ImportarOfertaPage({
                     <div className="grid gap-1 text-sm text-stone-600">
                       <p>Vídeos encontrados:</p>
                       {previa.videos.slice(0, 4).map((video, index) => (
-                        <a key={video} href={video} target="_blank" rel="noreferrer noopener" className="break-all text-orange-800 underline">
-                          Abrir vídeo {index + 1}
-                        </a>
+                        <div key={video} className="grid gap-1">
+                          <VideoPlayer src={video} title={`Vídeo ${index + 1}: ${previa.titulo}`} />
+                        </div>
                       ))}
                     </div>
                   )}

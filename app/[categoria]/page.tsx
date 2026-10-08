@@ -1,6 +1,8 @@
+import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { ProdutoCard } from "@/components/produto-card";
 import { CATEGORIAS } from "@/lib/categorias";
+import { incluirMelhoresOfertas } from "@/lib/ofertas-publicas";
 import { supabase } from "@/utils/supabase";
 
 export default async function CategoriaPage({
@@ -12,12 +14,15 @@ export default async function CategoriaPage({
   const categoria = CATEGORIAS.find((item) => item.slug === slug);
   if (!categoria) notFound();
 
-  const { data: produtos } = await supabase
+  await connection();
+  const { data, error } = await supabase
     .from("produtos")
     .select("id, slug, nome, imagem, preco_atual, preco_antigo")
     .eq("categoria", categoria.slug)
     .eq("status", "publicado")
     .order("criado_em", { ascending: false });
+  if (error) throw error;
+  const produtos = await incluirMelhoresOfertas(data ?? []);
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">

@@ -16,7 +16,11 @@ O Ache Ofertas BR é uma aplicação Next.js com catálogo público, navegação
 - Lógica compartilhada em `lib/`; clientes Supabase em `lib/supabase/server.ts` e `utils/supabase.ts`.
 - Integrações com Resend e IBGE. A importação por link tenta capturar metadados públicos e permite revisão manual quando a captura falha.
 - O conversor de link afiliado da Shopee está preparado no backend, mas permanece desativado até a configuração de credenciais privadas; ele converte links e não coleta dados de produto.
-- Sete migrations versionadas: três originais, três para afiliados/fontes/ofertas e uma para a base de importação. As migrations `20261007000000` a `20261007000200` foram aplicadas no Supabase; `20261007000300_importacoes_ofertas.sql` permanece local e pendente.
+- O formulário legado de produto oferece URL HTTPS ou envio de imagem/vídeo pelo computador, com arrastar e soltar e prévia. O upload usa URL assinada criada somente após autenticação administrativa; o bucket é de leitura pública e não permite upload público.
+- O produto público reproduz arquivos MP4/WebM e incorpora links válidos do YouTube/Vimeo; formatos externos não compatíveis permanecem como link para a origem. Streams externos só reproduzem se o host aceitar acesso do navegador e fornecer formato compatível.
+- O schema legado de `produtos` mantém somente uma imagem principal e um vídeo principal. Prévia de importação pode conter várias mídias, mas aprovação ainda associa somente a primeira imagem e o primeiro vídeo; galeria exige evolução de schema e admin separada.
+- A migration `20261007000400_produto_midias_storage.sql` cria o bucket público de leitura `produto-midias` (até 50 MB por arquivo; imagens JPEG/PNG/WebP/AVIF/GIF e vídeos MP4/WebM). Ela é local e precisa ser aplicada ao Supabase antes do primeiro envio. Nenhuma migration foi aplicada remotamente nesta alteração.
+- Sete migrations versionadas anteriores: três originais, três para afiliados/fontes/ofertas e uma para a base de importação. As migrations `20261007000000` a `20261007000200` foram aplicadas no Supabase; `20261007000300_importacoes_ofertas.sql` permanece local e pendente.
 - O schema base completo de produtos, categorias, cliques e tabelas de marketplace/preços não está representado integralmente nas migrations disponíveis. Conferir o projeto Supabase antes de qualquer mudança de banco.
 
 ## Base de importação de ofertas

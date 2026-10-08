@@ -9,6 +9,7 @@ type ProdutoCardData = {
   preco_atual: number | string | null;
   preco_antigo: number | string | null;
   marketplace?: string | null;
+  oferta_indisponivel?: boolean;
 };
 
 function moeda(valor: number) {
@@ -16,7 +17,7 @@ function moeda(valor: number) {
 }
 
 export function ProdutoCard({ produto }: { produto: ProdutoCardData }) {
-  const atual = Number(produto.preco_atual);
+  const atual = produto.preco_atual === null ? Number.NaN : Number(produto.preco_atual);
   const antigo = Number(produto.preco_antigo);
   const temDesconto =
     produto.preco_atual !== null &&
@@ -62,8 +63,13 @@ export function ProdutoCard({ produto }: { produto: ProdutoCardData }) {
           <p className="mt-0.5 text-xl font-extrabold text-orange-700">
             {Number.isFinite(atual) ? moeda(atual) : "Preço indisponível"}
           </p>
+          {produto.oferta_indisponivel && (
+            <p className="text-sm text-stone-600">Oferta indisponível no momento</p>
+          )}
           {marketplace && <p className="marketplace-name">{marketplace}</p>}
-          <Link href={`/produto/${produto.slug}`} className="product-card-cta">Ver oferta</Link>
+          <Link href={`/produto/${produto.slug}`} className="product-card-cta">
+            {produto.oferta_indisponivel ? "Ver detalhes" : "Ver oferta"}
+          </Link>
       </div>
     </article>
   );
