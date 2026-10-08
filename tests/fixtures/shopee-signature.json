@@ -1,0 +1,6 @@
+{
+  "appId": "123456",
+  "timestamp": "1700000000",
+  "body": "{\"query\":\"{ productOfferV2(shopId: 283238461, itemId: 23398539116, limit: 1) { nodes { itemId shopId productName } } }\"}",
+  "secret": "fixture-secret"
+}

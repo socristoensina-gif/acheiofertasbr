@@ -1,0 +1,20 @@
+{
+  "data": {
+    "productOfferV2": {
+      "nodes": [
+        {
+          "itemId": 23398539116,
+          "shopId": 283238461,
+          "productName": "Produto de teste Shopee",
+          "productLink": "https://shopee.com.br/produto-i.283238461.23398539116",
+          "offerLink": "https://s.shopee.com.br/affiliate-test",
+          "imageUrl": "https://down-br.img.susercontent.com/file/example-image",
+          "priceMin": "19.90",
+          "priceMax": "29.90",
+          "ratingStar": "4.8",
+          "sales": 123
+        }
+      ]
+    }
+  }
+}

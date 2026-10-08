@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test:import": "node --experimental-strip-types --test tests/import-readiness.test.mjs",
     "start": "next start",
     "lint": "eslint"
   },
