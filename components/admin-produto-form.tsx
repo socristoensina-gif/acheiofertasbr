@@ -1,9 +1,5 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { salvarProduto } from "@/app/admin/actions";
-import { AdminMediaField } from "@/components/admin-media-field";
 import { MARKETPLACES, marketplaceIdDoValor, STATUS_PRODUTO } from "@/lib/admin/produtos";
 
 type Categoria = { slug: string; nome: string };
@@ -40,9 +36,6 @@ export function AdminProdutoForm({
 }) {
   const beneficios = Array.isArray(produto?.beneficios) ? produto.beneficios.join("\n") : "";
   const marketplaceAtual = produto ? marketplaceIdDoValor(produto.marketplace) ?? produto.marketplace : "";
-  const [imagem, setImagem] = useState(produto?.imagem ?? "");
-  const [video, setVideo] = useState(produto?.video ?? "");
-  const [uploadsAtivos, setUploadsAtivos] = useState(0);
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1">
@@ -113,22 +106,14 @@ export function AdminProdutoForm({
             Benefícios (um por linha)
             <textarea name="beneficios" rows={4} defaultValue={beneficios} />
           </label>
-          <AdminMediaField
-            name="imagem"
-            label="Imagem principal da vitrine"
-            kind="image"
-            value={imagem}
-            onValueChange={setImagem}
-            onUploadStateChange={(active) => setUploadsAtivos((count) => count + (active ? 1 : -1))}
-          />
-          <AdminMediaField
-            name="video"
-            label="Vídeo principal da vitrine"
-            kind="video"
-            value={video}
-            onValueChange={setVideo}
-            onUploadStateChange={(active) => setUploadsAtivos((count) => count + (active ? 1 : -1))}
-          />
+          <label className="admin-field sm:col-span-2">
+            Imagem principal da vitrine (compatibilidade)
+            <input name="imagem" type="url" defaultValue={produto?.imagem ?? ""} />
+          </label>
+          <label className="admin-field sm:col-span-2">
+            Vídeo principal da vitrine (compatibilidade)
+            <input name="video" type="url" defaultValue={produto?.video ?? ""} />
+          </label>
           <label className="flex items-center gap-2 text-sm font-semibold sm:col-span-2">
             <input type="checkbox" name="destaque" defaultChecked={produto?.destaque ?? false} />
             Destacar na página inicial
@@ -200,19 +185,9 @@ export function AdminProdutoForm({
           )}
         </fieldset>
 
-        <div className="grid gap-2">
-          {uploadsAtivos > 0 && (
-            <p role="status" className="text-sm font-medium text-orange-800">
-              Aguarde o envio da mídia antes de salvar.
-            </p>
-          )}
-          <button
-            disabled={uploadsAtivos > 0}
-            className="rounded-md bg-orange-700 px-4 py-3 font-bold text-white hover:bg-orange-800 disabled:cursor-wait disabled:opacity-60"
-          >
-            Salvar produto
-          </button>
-        </div>
+        <button className="rounded-md bg-orange-700 px-4 py-3 font-bold text-white hover:bg-orange-800">
+          Salvar produto
+        </button>
       </form>
     </main>
   );

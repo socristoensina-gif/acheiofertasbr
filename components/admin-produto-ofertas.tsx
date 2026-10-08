@@ -5,6 +5,8 @@ import {
   definirProdutoOfertaPrincipal,
   excluirProdutoOferta,
 } from "@/app/admin/actions";
+import { AdminOfertaMidias } from "@/components/admin-oferta-midias";
+import type { OfferMedia } from "@/lib/media/config";
 
 type FonteIntegracao = {
   id: string;
@@ -53,6 +55,8 @@ export function AdminProdutoOfertas({
   ofertas,
   fontes,
   marketplaces,
+  midiasPorOferta,
+  galeriaConfigurada,
   erro,
   sucesso,
 }: {
@@ -60,6 +64,8 @@ export function AdminProdutoOfertas({
   ofertas: ProdutoOferta[];
   fontes: FonteIntegracao[];
   marketplaces: Marketplace[];
+  midiasPorOferta: Record<string, OfferMedia[]>;
+  galeriaConfigurada: boolean;
   erro?: string;
   sucesso?: string;
 }) {
@@ -70,6 +76,31 @@ export function AdminProdutoOfertas({
       {erro === "oferta" && (
         <p role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
           Não foi possível salvar a oferta. Confira os campos e se o ID do marketplace existe.
+        </p>
+      )}
+      {erro === "midias" && (
+        <p role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
+          Não foi possível salvar a galeria da oferta. Verifique as mídias e tente novamente.
+        </p>
+      )}
+      {erro === "midias-bucket" && (
+        <p role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
+          O bucket privado de mídia não está configurado. Aplique a migration 20261007000600_storage_midias.sql.
+        </p>
+      )}
+      {erro === "midias-cleanup" && (
+        <p role="alert" className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+          A alteração foi salva, mas alguns arquivos sem uso não puderam ser apagados do Storage. Verifique os logs do servidor.
+        </p>
+      )}
+      {sucesso === "midias" && (
+        <p role="status" className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
+          Galeria da oferta salva.
+        </p>
+      )}
+      {!galeriaConfigurada && (
+        <p role="status" className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+          Galeria indisponível até aplicar a migration 20261007000600_storage_midias.sql no Supabase.
         </p>
       )}
       {sucesso === "oferta" && (
@@ -224,6 +255,13 @@ export function AdminProdutoOfertas({
                 <p className="mt-3 text-xs text-stone-500">
                   Fonte de integração: {fontes.find((fonte) => fonte.id === oferta.fonte_integracao_id)?.nome ?? oferta.fonte_integracao_id}
                 </p>
+              )}
+              {galeriaConfigurada && (
+                <AdminOfertaMidias
+                  ofertaId={oferta.id}
+                  produtoId={produtoId}
+                  initialMedia={midiasPorOferta[oferta.id] ?? []}
+                />
               )}
             </li>
           ))}

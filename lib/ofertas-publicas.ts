@@ -3,6 +3,7 @@ import "server-only";
 import { supabaseAdmin } from "@/utils/supabase";
 
 type PublicOffer = {
+  id: string;
   produto_id: string;
   marketplace_id: string;
   preco_atual: number | null;
@@ -20,6 +21,7 @@ type LegacyProductOffer = {
 };
 
 export type ProdutoComMelhorOferta<T extends LegacyProductOffer> = T & {
+  produto_oferta_id: string | null;
   preco_atual: number | string | null;
   preco_antigo: number | string | null;
   marketplace: string | null;
@@ -34,7 +36,7 @@ export async function incluirMelhoresOfertas<T extends LegacyProductOffer>(
   const ids = produtos.map((produto) => String(produto.id));
   const { data, error } = await supabaseAdmin()
     .from("produto_ofertas")
-    .select("produto_id, marketplace_id, preco_atual, preco_anterior, disponibilidade, principal, ativo")
+    .select("id, produto_id, marketplace_id, preco_atual, preco_anterior, disponibilidade, principal, ativo")
     .in("produto_id", ids)
 
   if (error) throw error;
@@ -51,6 +53,7 @@ export async function incluirMelhoresOfertas<T extends LegacyProductOffer>(
     if (ofertas.length === 0) {
       return {
         ...produto,
+        produto_oferta_id: null,
         marketplace: produto.marketplace ?? null,
         oferta_indisponivel: false,
       };
@@ -67,6 +70,7 @@ export async function incluirMelhoresOfertas<T extends LegacyProductOffer>(
 
     return {
       ...produto,
+      produto_oferta_id: melhorOferta?.id ?? null,
       preco_atual: melhorOferta?.preco_atual ?? null,
       preco_antigo: melhorOferta?.preco_anterior ?? null,
       marketplace: melhorOferta?.marketplace_id ?? ofertas[0].marketplace_id,

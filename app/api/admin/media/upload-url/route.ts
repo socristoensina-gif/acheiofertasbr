@@ -1,8 +1,8 @@
 import { getAdminUser } from "@/lib/admin/auth";
 import {
   MEDIA_BUCKET,
-  MEDIA_FILE_TYPES,
   MAX_MEDIA_FILE_SIZE,
+  mediaFileExtension,
   type MediaKind,
 } from "@/lib/media/config";
 import { supabaseAdmin } from "@/utils/supabase";
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   if (
     (kind !== "image" && kind !== "video") ||
     typeof contentType !== "string" ||
-    !(contentType in MEDIA_FILE_TYPES[kind as MediaKind]) ||
+    !mediaFileExtension(kind as MediaKind, contentType) ||
     typeof fileSize !== "number" ||
     !Number.isSafeInteger(fileSize) ||
     fileSize < 1 ||
@@ -65,7 +65,8 @@ export async function POST(request: Request) {
     return response({ error: "Tipo ou tamanho de arquivo não permitido." }, 400);
   }
 
-  const extension = MEDIA_FILE_TYPES[kind as MediaKind][contentType as keyof typeof MEDIA_FILE_TYPES[MediaKind]];
+  const extension = mediaFileExtension(kind as MediaKind, contentType);
+  if (!extension) return response({ error: "Tipo de arquivo não permitido." }, 400);
   const path = `${kind}/${crypto.randomUUID()}.${extension}`;
   const { data, error } = await supabaseAdmin()
     .storage
@@ -73,8 +74,25 @@ export async function POST(request: Request) {
     .createSignedUploadUrl(path);
 
   if (error) {
-    console.error("Não foi possível preparar o envio de mídia do admin.", error.name);
-    return response({ error: "O armazenamento de mídia não está pronto. Tente novamente mais tarde." }, 503);
+    const code = error.statusCode;
+    console.error("Falha ao emitir URL assinada de mídia.", {
+      name: error.name,
+      status: error.status,
+      code,
+    });
+    if (error.status === 404 || code === "404") {
+      return response({
+        error: "O bucket produto-midias não existe no Supabase. Aplique a migration 20261007000600_storage_midias.sql.",
+      }, 503);
+    }
+    if (error.status === 401 || error.status === 403 || code === "401" || code === "403") {
+      return response({
+        error: "O Supabase recusou a criação da URL de envio. Verifique a SUPABASE_SERVICE_ROLE_KEY no servidor.",
+      }, 503);
+    }
+    return response({
+      error: "Falha ao preparar o armazenamento de mídia. Verifique a configuração do bucket e tente novamente.",
+    }, 503);
   }
 
   return response({ path: data.path, token: data.token }, 201);

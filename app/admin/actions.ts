@@ -7,8 +7,14 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { isStatusProduto, marketplaceDoLink, marketplaceIdDoLink } from "@/lib/admin/produtos";
 import { linkAfiliadoPermitido } from "@/lib/dominios-permitidos";
 import { isCategoriaSlug } from "@/lib/categorias";
+import {
+  MAX_OFFER_IMAGES,
+  MAX_OFFER_VIDEOS,
+  validMediaStoragePath,
+} from "@/lib/media/config";
 import { importarOfertaPorLink, validarPreviaImportacao } from "@/lib/importacoes/ofertas-link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Json } from "@/lib/supabase/database.types";
 import { supabaseAdmin } from "@/utils/supabase";
 
 export async function loginAdmin(formData: FormData) {
@@ -433,8 +439,8 @@ export async function aprovarImportacaoOferta(formData: FormData) {
       marketplace: previa.marketplace_id,
       id_externo: previa.id_externo,
       link_afiliado: previa.url_origem,
-      imagem: previa.imagens[0] ?? null,
-      video: previa.videos[0] ?? null,
+      imagem: null,
+      video: null,
       descricao: null,
       beneficios: previa.caracteristicas,
       preco_atual: previa.preco_atual,
@@ -498,6 +504,43 @@ export async function aprovarImportacaoOferta(formData: FormData) {
       throw new Error(`Oferta não criada (${erroOferta.code}); importação não restaurada (${erroRestauracao.code}).`);
     }
     throw erroOferta;
+  }
+
+  const midiasImportadas: Json = [
+    ...previa.imagens.slice(0, MAX_OFFER_IMAGES).map((url) => ({
+      tipo: "imagem",
+      storage_path: null,
+      url_externa: url,
+      aprovado: false,
+    })),
+    ...previa.videos.slice(0, MAX_OFFER_VIDEOS).map((url) => ({
+      tipo: "video",
+      storage_path: null,
+      url_externa: url,
+      aprovado: false,
+    })),
+  ];
+  if (Array.isArray(midiasImportadas) && midiasImportadas.length > 0) {
+    const { error: erroMidias } = await db.rpc("salvar_produto_oferta_midias", {
+      p_produto_oferta_id: oferta.id,
+      p_midias: midiasImportadas,
+    });
+    if (erroMidias) {
+      console.error("Falha ao registrar mídias importadas da oferta.", erroMidias.code);
+      const { error: erroRollback } = await db.from("produtos").delete().eq("id", produto.id);
+      if (erroRollback) {
+        throw new Error(`Mídias não registradas (${erroMidias.code}); falha ao remover produto incompleto (${erroRollback.code}).`);
+      }
+      const { error: erroRestauracao } = await db
+        .from("importacoes_ofertas")
+        .update({ status: "aguardando_revisao" })
+        .eq("id", importacaoId)
+        .eq("status", "processando");
+      if (erroRestauracao) {
+        throw new Error(`Mídias não registradas (${erroMidias.code}); importação não restaurada (${erroRestauracao.code}).`);
+      }
+      throw erroMidias;
+    }
   }
 
   const { data: importacaoAtualizada, error: erroFinalizacao } = await db
@@ -589,6 +632,78 @@ function booleanoOpcional(valor: string) {
   return undefined;
 }
 
+type OfertaMidiaInput = {
+  tipo: "imagem" | "video";
+  storage_path: string | null;
+  url_externa: string | null;
+  aprovado: boolean;
+};
+
+function lerMidiasOferta(raw: string): OfertaMidiaInput[] | null {
+  let value: unknown;
+  try {
+    value = JSON.parse(raw) as unknown;
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(value) || value.length > MAX_OFFER_IMAGES + MAX_OFFER_VIDEOS) return null;
+
+  const media: OfertaMidiaInput[] = [];
+  const unique = new Set<string>();
+  for (const item of value) {
+    if (
+      !item ||
+      typeof item !== "object" ||
+      !("tipo" in item) ||
+      (item.tipo !== "imagem" && item.tipo !== "video") ||
+      !("storage_path" in item) ||
+      !(item.storage_path === null || typeof item.storage_path === "string") ||
+      !("url_externa" in item) ||
+      !(item.url_externa === null || typeof item.url_externa === "string") ||
+      !("aprovado" in item) ||
+      typeof item.aprovado !== "boolean"
+    ) {
+      return null;
+    }
+
+    const path = item.storage_path || null;
+    const externalUrl = item.url_externa || null;
+    const kind = item.tipo === "imagem" ? "image" : "video";
+    if (
+      (path === null) === (externalUrl === null) ||
+      (path !== null && !validMediaStoragePath(path, kind)) ||
+      (externalUrl !== null && (
+        externalUrl.length > 2048 ||
+        !urlHttpsValida(externalUrl) ||
+        (() => {
+          const url = new URL(externalUrl);
+          return Boolean(url.username || url.password);
+        })()
+      ))
+    ) {
+      return null;
+    }
+
+    const key = path ?? externalUrl!;
+    if (unique.has(key)) return null;
+    unique.add(key);
+    media.push({
+      tipo: item.tipo,
+      storage_path: path,
+      url_externa: externalUrl,
+      aprovado: item.aprovado,
+    });
+  }
+
+  if (
+    media.filter(({ tipo }) => tipo === "imagem").length > MAX_OFFER_IMAGES ||
+    media.filter(({ tipo }) => tipo === "video").length > MAX_OFFER_VIDEOS
+  ) {
+    return null;
+  }
+  return media;
+}
+
 function isTipoIntegracao(valor: string): valor is "API" | "LINK" | "MANUAL" | "N8N" {
   return valor === "API" || valor === "LINK" || valor === "MANUAL" || valor === "N8N";
 }
@@ -604,6 +719,90 @@ function valoresOfertaValidos(
     (avaliacao === null ||
       (Number.isFinite(avaliacao) && avaliacao >= 0 && avaliacao <= 5))
   );
+}
+
+export async function salvarMidiasProdutoOferta(formData: FormData) {
+  await requireAdmin();
+  const produtoId = texto(formData, "produto_id");
+  const ofertaId = texto(formData, "oferta_id");
+  const midias = lerMidiasOferta(texto(formData, "midias"));
+  let pathsDescartados: unknown;
+  try {
+    pathsDescartados = JSON.parse(texto(formData, "paths_descartados")) as unknown;
+  } catch {
+    pathsDescartados = null;
+  }
+  if (
+    !uuidValido(produtoId) ||
+    !uuidValido(ofertaId) ||
+    midias === null ||
+    !Array.isArray(pathsDescartados) ||
+    pathsDescartados.length > MAX_OFFER_IMAGES + MAX_OFFER_VIDEOS ||
+    pathsDescartados.some((path) => typeof path !== "string" || !validMediaStoragePath(path))
+  ) {
+    redirect(destinoProduto(produtoId, "erro", "oferta"));
+  }
+
+  const db = supabaseAdmin();
+  const [{ data: oferta, error: erroOferta }, { data: anteriores, error: erroMidias }] = await Promise.all([
+    db.from("produto_ofertas")
+      .select("id, produto_id")
+      .eq("id", ofertaId)
+      .eq("produto_id", produtoId)
+      .maybeSingle(),
+    db.from("produto_oferta_midias")
+      .select("storage_path")
+      .eq("produto_oferta_id", ofertaId),
+  ]);
+  if (erroOferta) throw erroOferta;
+  if (erroMidias) {
+    if (["42P01", "PGRST205"].includes(erroMidias.code)) {
+      redirect(`/admin/produtos/${produtoId}?erro=midias-bucket`);
+    }
+    throw erroMidias;
+  }
+  if (!oferta) redirect(destinoProduto(produtoId, "erro"));
+
+  const payload: Json = midias.map((midia) => ({
+    tipo: midia.tipo,
+    storage_path: midia.storage_path,
+    url_externa: midia.url_externa,
+    aprovado: midia.aprovado,
+  }));
+  const { error: erroSalvar } = await db.rpc("salvar_produto_oferta_midias", {
+    p_produto_oferta_id: ofertaId,
+    p_midias: payload,
+  });
+  if (erroSalvar) {
+    console.error("Falha ao salvar galeria da oferta.", erroSalvar.code);
+    redirect(`/admin/produtos/${produtoId}?erro=midias`);
+  }
+
+  const caminhosMantidos = new Set(
+    midias.flatMap(({ storage_path }) => storage_path ? [storage_path] : []),
+  );
+  const caminhosAntigos = (anteriores ?? [])
+    .flatMap(({ storage_path }) => storage_path ? [storage_path] : []);
+  const caminhosParaRemover = [...new Set([
+    ...caminhosAntigos,
+    ...(pathsDescartados as string[]),
+  ])].filter((path) => !caminhosMantidos.has(path));
+  if (caminhosParaRemover.length > 0) {
+    const { error: erroRemocao } = await db.storage
+      .from("produto-midias")
+      .remove(caminhosParaRemover);
+    if (erroRemocao) {
+      console.error("Falha ao limpar arquivos removidos da galeria.", {
+        name: erroRemocao.name,
+        status: erroRemocao.status,
+        code: erroRemocao.statusCode,
+      });
+      redirect(`/admin/produtos/${produtoId}?erro=midias-cleanup`);
+    }
+  }
+
+  revalidarProdutoOferta(produtoId);
+  redirect(`/admin/produtos/${produtoId}?sucesso=midias`);
 }
 
 export async function criarProdutoOferta(formData: FormData) {
@@ -787,7 +986,14 @@ export async function excluirProdutoOferta(formData: FormData) {
     redirect(destinoProduto(produtoId, "erro"));
   }
 
-  const { error, data } = await supabaseAdmin()
+  const db = supabaseAdmin();
+  const { data: midias, error: erroMidias } = await db
+    .from("produto_oferta_midias")
+    .select("storage_path")
+    .eq("produto_oferta_id", ofertaId);
+  if (erroMidias && !["42P01", "PGRST205"].includes(erroMidias.code)) throw erroMidias;
+
+  const { error, data } = await db
     .from("produto_ofertas")
     .delete()
     .eq("id", ofertaId)
@@ -796,6 +1002,20 @@ export async function excluirProdutoOferta(formData: FormData) {
     .maybeSingle();
   if (error) throw error;
   if (!data) redirect(destinoProduto(produtoId, "erro"));
+
+  const caminhos = (midias ?? [])
+    .flatMap(({ storage_path }) => storage_path ? [storage_path] : []);
+  if (caminhos.length > 0) {
+    const { error: erroRemocao } = await db.storage.from("produto-midias").remove(caminhos);
+    if (erroRemocao) {
+      console.error("Falha ao limpar arquivos após excluir oferta.", {
+        name: erroRemocao.name,
+        status: erroRemocao.status,
+        code: erroRemocao.statusCode,
+      });
+      redirect(`/admin/produtos/${produtoId}?erro=midias-cleanup`);
+    }
+  }
 
   revalidarProdutoOferta(produtoId);
   redirect(destinoProduto(produtoId, "sucesso"));

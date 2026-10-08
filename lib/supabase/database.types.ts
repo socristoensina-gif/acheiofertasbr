@@ -187,6 +187,28 @@ type ImportacaoOfertaRow = {
   processado_em: string | null;
 };
 
+type ProdutoOfertaMidiaRow = {
+  id: string;
+  produto_oferta_id: string;
+  tipo: "imagem" | "video";
+  storage_path: string | null;
+  url_externa: string | null;
+  ordem: number;
+  principal: boolean;
+  aprovado: boolean;
+  criado_em: string;
+};
+
+type ProdutoOfertaMidiaRelationships = [
+  {
+    foreignKeyName: "produto_oferta_midias_produto_oferta_id_fkey";
+    columns: ["produto_oferta_id"];
+    isOneToOne: false;
+    referencedRelation: "produto_ofertas";
+    referencedColumns: ["id"];
+  },
+];
+
 type NewsletterAssinanteRow = {
   id: string;
   nome: string;
@@ -345,6 +367,22 @@ export type Database = {
         },
         Partial<Omit<ImportacaoOfertaRow, "id" | "criado_em">>
       >;
+      produto_oferta_midias: Table<
+        ProdutoOfertaMidiaRow,
+        {
+          id?: string;
+          produto_oferta_id: string;
+          tipo: ProdutoOfertaMidiaRow["tipo"];
+          storage_path?: string | null;
+          url_externa?: string | null;
+          ordem?: number;
+          principal?: boolean;
+          aprovado?: boolean;
+          criado_em?: string;
+        },
+        Partial<Omit<ProdutoOfertaMidiaRow, "id" | "criado_em">>,
+        ProdutoOfertaMidiaRelationships
+      >;
       newsletter_assinantes: Table<
         NewsletterAssinanteRow,
         Omit<NewsletterAssinanteRow, "id" | "criado_em" | "atualizado_em" | "token_descadastro" | "consentimento_texto" | "consentimento_versao" | "confirmado_em" | "cancelado_em"> & {
@@ -374,6 +412,10 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      salvar_produto_oferta_midias: {
+        Args: { p_produto_oferta_id: string; p_midias: Json };
+        Returns: undefined;
+      };
       selecionar_produto_oferta_principal: {
         Args: { p_oferta_id: string };
         Returns: undefined;
