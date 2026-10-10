@@ -10,6 +10,7 @@ type ProdutoCardData = {
   preco_antigo: number | string | null;
   marketplace?: string | null;
   oferta_indisponivel?: boolean;
+  melhor_oferta?: { preco_atual?: number | null; preco_antigo?: number | null; marketplace?: string | null; imagem?: string | null };
 };
 
 function moeda(valor: number) {
