@@ -166,6 +166,7 @@ type ProdutoOfertaRow = {
   comissao_interna: number | null;
   ativo: boolean;
   principal: boolean;
+  video_primeiro: boolean;
   fonte_dados: string | null;
   ultima_atualizacao: string;
   criado_em: string;
@@ -341,6 +342,7 @@ export type Database = {
           comissao_interna?: number | null;
           ativo?: boolean;
           principal?: boolean;
+          video_primeiro?: boolean;
           fonte_dados?: string | null;
           ultima_atualizacao?: string;
           criado_em?: string;
