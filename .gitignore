@@ -47,3 +47,5 @@ next-env.d.ts
 .continue/
 
 .continue/
+
+*.zip
