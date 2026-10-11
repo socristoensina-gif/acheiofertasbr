@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
+import { ProdutoCard } from "@/components/produto-card";
 import { ProdutoCompartilhar } from "@/components/produto-compartilhar";
 import { ProdutoGaleria } from "@/components/produto-galeria";
+import { CATEGORIAS } from "@/lib/categorias";
 import { incluirMelhoresOfertas } from "@/lib/ofertas-publicas";
 import { supabase, supabaseAdmin } from "@/utils/supabase";
 
@@ -21,13 +24,26 @@ export default async function ProdutoPage({
   await connection();
   const { data: produto, error } = await supabase
     .from("produtos")
-    .select("id, slug, nome, imagem, video, descricao, beneficios, preco_atual, preco_antigo, marketplace")
+    .select("id, slug, nome, categoria, imagem, video, descricao, beneficios, preco_atual, preco_antigo, marketplace")
     .eq("slug", slug)
     .eq("status", "publicado")
     .maybeSingle();
   if (error) throw error;
   if (!produto) notFound();
   const [p] = await incluirMelhoresOfertas([produto]);
+
+  // Links internos: outros produtos publicados da mesma categoria.
+  const categoriaAtual = CATEGORIAS.find((categoria) => categoria.slug === produto.categoria);
+  const { data: mesmaCategoria, error: erroRelacionados } = await supabase
+    .from("produtos")
+    .select("id, slug, nome, imagem, video, preco_atual, preco_antigo, marketplace")
+    .eq("categoria", produto.categoria)
+    .eq("status", "publicado")
+    .neq("id", produto.id)
+    .order("atualizado_em", { ascending: false })
+    .limit(4);
+  if (erroRelacionados) console.error("Erro ao buscar produtos relacionados", erroRelacionados.code);
+  const relacionados = await incluirMelhoresOfertas(mesmaCategoria ?? []);
   const admin = supabaseAdmin();
   let videoPrimeiro = false;
   let midiasAprovadas: { tipo: "imagem" | "video"; url: string }[] = [];
@@ -161,6 +177,26 @@ export default async function ProdutoPage({
           )}
         </div>
       </div>
+
+      {relacionados.length > 0 && (
+        <section aria-labelledby="mais-na-categoria" className="mt-12 border-t border-stone-200 pt-8">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 id="mais-na-categoria" className="text-xl font-bold">
+              {categoriaAtual ? `Mais em ${categoriaAtual.nome}` : "Produtos relacionados"}
+            </h2>
+            {categoriaAtual && (
+              <Link href={`/${categoriaAtual.slug}`} className="text-sm font-semibold text-orange-700 hover:underline">
+                Ver todos em {categoriaAtual.nome}
+              </Link>
+            )}
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+            {relacionados.map((relacionado) => (
+              <ProdutoCard key={relacionado.id} produto={relacionado} />
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }

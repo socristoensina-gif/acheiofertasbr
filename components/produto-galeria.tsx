@@ -33,6 +33,8 @@ export function ProdutoGaleria({
   const total = itens.length;
   const indice = Math.min(atual, total - 1);
   const item = itens[indice];
+  const numeroImagem = (posicao: number) =>
+    itens.slice(0, posicao + 1).filter((outro) => outro.tipo === "imagem").length;
 
   function ir(destino: number) {
     setAtual((destino + total) % total);
@@ -70,7 +72,7 @@ export function ProdutoGaleria({
           <img
             key={item.url}
             src={item.url}
-            alt={`${nome}, imagem ${indice + 1}`}
+            alt={`${nome} - imagem ${numeroImagem(indice)}`}
             referrerPolicy="no-referrer"
             onError={() => marcarFalha(item.url)}
             className="h-full w-full object-contain"
@@ -125,7 +127,7 @@ export function ProdutoGaleria({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={miniatura.url}
-                    alt=""
+                    alt={`${nome} - imagem ${numeroImagem(posicao)}`}
                     referrerPolicy="no-referrer"
                     onError={() => marcarFalha(miniatura.url)}
                     className="h-full w-full object-cover"
