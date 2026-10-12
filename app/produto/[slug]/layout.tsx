@@ -46,6 +46,7 @@ export async function generateMetadata({
   const url = `${BASE}/produto/${produto.slug}`;
 
   return {
+    metadataBase: new URL(BASE),
     title: { absolute: seo.titulo },
     description: seo.descricao,
     alternates: { canonical: url },

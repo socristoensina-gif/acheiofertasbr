@@ -91,7 +91,7 @@ export function gerarSeoProduto(entrada: EntradaSeo): SaidaSeo {
   };
   if (loja) add(tagDe(loja));
   for (const t of tagsCategoria) add(t);
-  for (const p of palavras.filter((w) => w.length >= 4).slice(0, 4)) add(tagDe(p));
+  for (const p of palavras.filter((w) => /^[a-z]{4,20}$/.test(w)).slice(0, 4)) add(tagDe(p));
   add("#achadinhos");
   add("#ofertas");
 

@@ -1,9 +1,36 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { ProdutoCard } from "@/components/produto-card";
 import { CATEGORIAS } from "@/lib/categorias";
 import { incluirMelhoresOfertas } from "@/lib/ofertas-publicas";
+import { MARCA } from "@/lib/seo/gerar";
 import { supabase } from "@/utils/supabase";
+
+const BASE = "https://acheiofertasbr.online";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ categoria: string }>;
+}): Promise<Metadata> {
+  const { categoria: slug } = await params;
+  const categoria = CATEGORIAS.find((item) => item.slug === slug);
+  if (!categoria) {
+    return { title: "Categoria não encontrada", robots: { index: false, follow: false } };
+  }
+  const titulo = `${categoria.nome} em oferta | ${MARCA}`;
+  const descricao = `Ofertas de ${categoria.nome} selecionadas nos principais marketplaces. Compare preços e confira no ${MARCA}.`;
+  const url = `${BASE}/${categoria.slug}`;
+  return {
+    title: { absolute: titulo },
+    description: descricao,
+    alternates: { canonical: url },
+    openGraph: { title: titulo, description: descricao, url, siteName: MARCA, locale: "pt_BR", type: "website" },
+    twitter: { card: "summary", title: titulo, description: descricao },
+    robots: { index: true, follow: true },
+  };
+}
 
 export default async function CategoriaPage({
   params,

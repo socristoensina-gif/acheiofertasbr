@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://acheiofertasbr.online"),
   title: "Ache Ofertas BR | Curadoria de ofertas",
   description: "Produtos e ofertas selecionados nos principais marketplaces.",
 };

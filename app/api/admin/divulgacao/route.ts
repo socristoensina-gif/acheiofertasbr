@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { getAdminUser } from "@/lib/admin/auth";
 import { CATEGORIAS } from "@/lib/categorias";
 import { incluirMelhoresOfertas } from "@/lib/ofertas-publicas";
@@ -7,22 +7,28 @@ import { supabase } from "@/utils/supabase";
 
 const COLUNAS = ["slug", "canal", "legenda", "hashtags", "disponivel"];
 
-const campo = (valor: string) => `"${valor.replace(/"/g, '""')}"`;
+// No modo Excel, campos que começam com = + - @ (ou tab/CR) ganham um apóstrofo na frente,
+// para o Excel não interpretar o conteúdo como fórmula. No modo normal (n8n) o texto segue intacto.
+const campo = (valor: string, protegerFormula: boolean) => {
+  const seguro = protegerFormula && /^[=+\-@\t\r]/.test(valor) ? `'${valor}` : valor;
+  return `"${seguro.replace(/"/g, '""')}"`;
+};
+
+// Compara os hashes SHA-256 (mesmo tamanho sempre) em tempo constante.
+const resumo = (valor: string) => createHash("sha256").update(valor).digest();
 
 // Para o n8n: CSV padrão (vírgula, UTF-8). Para abrir no Excel em português, use ?excel=1
 // (ponto e vírgula e BOM UTF-8, que fazem o Excel separar as colunas e mostrar os acentos).
 
-// Acesso do n8n: cabeçalho "Authorization: Bearer <EXPORT_TOKEN>".
-// Sem a variável EXPORT_TOKEN definida, só a sessão de admin funciona.
+// Acesso do n8n: somente o cabeçalho "Authorization: Bearer <EXPORT_TOKEN>" (nunca por URL).
+// O token nunca é registrado em log. Sem a variável EXPORT_TOKEN, só a sessão de admin funciona.
 function tokenValido(request: Request) {
   const esperado = process.env.EXPORT_TOKEN?.trim();
   if (!esperado) return false;
   const cabecalho = request.headers.get("authorization") ?? "";
   const enviado = cabecalho.startsWith("Bearer ") ? cabecalho.slice(7).trim() : "";
   if (!enviado) return false;
-  const a = Buffer.from(enviado);
-  const b = Buffer.from(esperado);
-  return a.length === b.length && timingSafeEqual(a, b);
+  return timingSafeEqual(resumo(enviado), resumo(esperado));
 }
 
 export async function GET(request: Request) {
@@ -66,7 +72,7 @@ export async function GET(request: Request) {
           pacote.hashtags.join(" "),
           produto.oferta_indisponivel ? "nao" : "sim",
         ]
-          .map(campo)
+          .map((valor) => campo(valor, excel))
           .join(separador),
       );
     }
