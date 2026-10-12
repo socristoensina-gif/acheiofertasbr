@@ -58,7 +58,7 @@ export async function generateMetadata({
       locale: "pt_BR",
       type: "website",
     },
-    twitter: { card: "summary", title: seo.titulo, description: seo.descricao },
+    twitter: { card: "summary_large_image", title: seo.titulo, description: seo.descricao },
     robots: { index: true, follow: true },
   };
 }

@@ -63,7 +63,7 @@ a { text-decoration: none; }
 .featured-banner::before { position: absolute; z-index: -1; inset: 0; background: linear-gradient(100deg, rgb(7 20 34 / 98%) 0%, rgb(7 20 34 / 90%) 46%, rgb(7 20 34 / 20%) 100%), radial-gradient(#284056 0.7px, transparent 0.8px); background-size: auto, 16px 16px; content: ""; }
 .featured-copy { position: relative; z-index: 1; padding: 1.5rem; }
 .featured-eyebrow { margin-bottom: 0.55rem; color: var(--yellow); font-size: 0.68rem; font-weight: 850; text-transform: uppercase; }
-.featured-copy h1, .featured-empty h1 { max-width: 35rem; font-size: 1.65rem; font-weight: 900; line-height: 1.08; }
+.featured-copy h2, .featured-empty h1 { max-width: 35rem; font-size: 1.65rem; font-weight: 900; line-height: 1.08; }
 .featured-price { margin-top: 0.8rem; color: var(--yellow); font-size: 1.45rem; font-weight: 900; }
 .featured-discount { display: inline-flex; position: absolute; right: -15rem; top: 0; min-width: 5rem; min-height: 5rem; align-items: center; justify-content: center; border-radius: 50%; background: var(--yellow); padding: 0.5rem; color: #111827; font-size: 0.8rem; font-weight: 950; text-align: center; }
 .featured-button { display: inline-flex; min-height: 2.7rem; align-items: center; gap: 0.5rem; margin-top: 0.8rem; border-radius: 0.35rem; background: var(--orange); padding: 0.65rem 1rem; color: white; font-size: 0.85rem; font-weight: 850; }
@@ -178,7 +178,7 @@ a { text-decoration: none; }
   .category-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .contact-location-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .featured-copy { padding: 2rem; }
-  .featured-copy h1 { font-size: 2rem; }
+  .featured-copy h2 { font-size: 2rem; }
 }
 
 @media (max-width: 639px) {
@@ -193,7 +193,7 @@ a { text-decoration: none; }
   .vip-button small { display: none; }
   .featured-banner { min-height: 14rem; grid-template-columns: 1fr 0.75fr; }
   .featured-copy { padding: 1rem; }
-  .featured-copy h1 { font-size: 1.25rem; }
+  .featured-copy h2 { font-size: 1.25rem; }
   .featured-price { font-size: 1.15rem; }
   .featured-image { max-height: 12rem; padding: 0.35rem; }
   .featured-discount { right: -7rem; top: -0.3rem; min-width: 3.7rem; min-height: 3.7rem; font-size: 0.62rem; }

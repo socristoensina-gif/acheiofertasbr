@@ -79,7 +79,10 @@ export default async function Home() {
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-3 pb-12 pt-4 sm:px-6 lg:px-8">
       {ofertas?.length ? (
-        <FeaturedCarousel produtos={ofertas} />
+        <>
+          <h1 className="sr-only">Ache Ofertas BR: curadoria de ofertas dos principais marketplaces</h1>
+          <FeaturedCarousel produtos={ofertas} />
+        </>
       ) : (
         <section className="featured-empty mb-7">
           <p className="featured-eyebrow">Ache Ofertas BR</p>
